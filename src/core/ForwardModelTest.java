@@ -127,7 +127,7 @@ class ForwardModelTest {
         for (int i = 0; i < n; i++) {
             if (!game.isEnded()) {
                 // Loop game while it's not ended.
-                game.tick();
+                game.tick(false);
                 if (VERBOSE) {
                     game.printBoard();
                 }

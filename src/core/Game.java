@@ -38,15 +38,11 @@ public class Game {
     // Size of the board.
     private int size;
 
-    /**
-     * String that identifies this game (for logging purposes)
-     */
+    // String that identifies this game (for logging purposes)
     private String gameIdStr;
 
-    /**
-     * Log flags
-     */
-    public static boolean LOG_GAME = true;
+    // Log flags
+    public static boolean LOG_GAME = false;
     public static boolean LOG_GAME_JSON = true; // If the game is being logged, should it be saved to json
 
     // Variables for multi-threaded run
@@ -153,7 +149,6 @@ public class Game {
             if (gameStateObservations[i] != null)
                 copy.gameStateObservations[i] = gameStateObservations[i].copy();
         }
-
         if (gameLog != null)
             copy.gameLog = gameLog.copy();
         return copy;
@@ -217,22 +212,9 @@ public class Game {
         while(!isEnded() || VISUALS && wi != null && !wi.windowClosed && !isEnded()) {
             // Loop while window is still open, even if the game ended.
             // If not playing with visuals, loop while the game's not ended.
+            tick(separateThreads);
 
-            if (separateThreads) {
-                try {
-                    tickInSepareteThreads();
-
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                tick();
-            }
-
-            if (VERBOSE) {
-                printBoard();
-            }
-
+            // Check end of game
             if (firstEnd && isEnded()) {
                 firstEnd = false;
                 results = terminate();
@@ -243,6 +225,7 @@ public class Game {
                 }
             }
 
+            // Paint game state
             if (VISUALS && frame != null) {
                 frame.paint();
                 try {
@@ -258,6 +241,7 @@ public class Game {
             results = terminate();
         }
 
+        // Save logged game
         if (LOG_GAME) {
             if (LOG_GAME_JSON) {
                 gameLog.serializeJSON(gameIdStr);
@@ -266,6 +250,7 @@ public class Game {
             }
         }
 
+        // Collect and kill all threads
         if (separateThreads) {
             try {
                 killThreads();
@@ -275,6 +260,92 @@ public class Game {
         }
 
         return results;
+    }
+
+    /**
+     * Ticks the game forward. Asks agents for actions and applies returned actions to obtain the next game state.
+     * @param separateThreads - true if game should be run in separate threads, false otherwise.
+     */
+    void tick (boolean separateThreads) {
+        if (VERBOSE) {
+            System.out.println("tick: " + gs.getTick());
+        }
+
+        // Retrieve agent actions
+        Types.ACTIONS[] actions = null;
+        if (separateThreads) {
+            try {
+                actions = getAvatarActionsInSeparateThreads();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        } else {
+            actions = getAvatarActions();
+        }
+
+        // Log actions
+        if (LOG_GAME) {
+            gameLog.addActions(actions);
+        }
+
+        // Advance the game state
+        gs.next(actions);
+        updateAssignedGameStates();
+
+        if (VERBOSE) {
+            printBoard();
+        }
+    }
+
+    /**
+     * Get player actions, 1 for each avatar still in the game. Called at every frame.
+     */
+    private Types.ACTIONS[] getAvatarActions() {
+        // Get player actions, 1 for each avatar still in the game
+        Types.ACTIONS[] actions = new Types.ACTIONS[NUM_PLAYERS];
+        for (int i = 0; i < NUM_PLAYERS; i++) {
+            Player p = players.get(i);
+
+            // Check if this player is still playing
+            if (gameStateObservations[i].winner() == Types.RESULT.INCOMPLETE) {
+                actions[i] = p.act(gameStateObservations[i]);
+            } else {
+                // This player is dead and action will be ignored
+                actions[i] = Types.ACTIONS.ACTION_STOP;
+            }
+        }
+        return actions;
+    }
+
+    /**
+     * Get player actions, 1 for each avatar still in the game, using separate threads. Called at every frame.
+     */
+    private Types.ACTIONS[] getAvatarActionsInSeparateThreads() throws InterruptedException {
+        //
+        Types.ACTIONS[] actions = new Types.ACTIONS[NUM_PLAYERS];
+        for (int i = 0; i < NUM_PLAYERS; i++) {
+            Player p = players.get(i);
+
+            // Check if this player is still playing
+            if (gameStateObservations[i].winner() == Types.RESULT.INCOMPLETE) {
+                actors[i].player = p;
+                threads[i] = new Thread(actors[i]);
+                threads[i].start();
+            } else {
+                threads[i] = null;
+                // This player is dead and action will be ignored
+                actions[i] = Types.ACTIONS.ACTION_STOP;
+            }
+        }
+
+        killThreads();
+
+        for (int i = 0; i < NUM_PLAYERS; i++) {
+            if (threads[i] != null)
+                actions[i] = actors[i].getValue();
+        }
+
+        return actions;
     }
 
     /**
@@ -294,76 +365,6 @@ public class Game {
             if (threads[i] != null && threads[i].isAlive())
                 threads[i].join();
         }
-    }
-
-
-    /**
-     * Main loop of the game. Called at every frame.
-     */
-    public void tick() {
-        if (VERBOSE) {
-            System.out.println("tick: " + gs.getTick());
-        }
-
-        // Get player actions, 1 for each avatar still in the game
-        Types.ACTIONS[] actions = new Types.ACTIONS[NUM_PLAYERS];
-        for (int i = 0; i < NUM_PLAYERS; i++) {
-            Player p = players.get(i);
-
-            // Check if this player is still playing
-            if (gameStateObservations[i].winner() == Types.RESULT.INCOMPLETE) {
-                actions[i] = p.act(gameStateObservations[i]);
-            } else {
-                // This player is dead and action will be ignored
-                actions[i] = Types.ACTIONS.ACTION_STOP;
-            }
-        }
-
-        if (LOG_GAME)
-            gameLog.addActions(actions);
-        // Advance the game state
-        gs.next(actions);
-        updateAssignedGameStates();
-    }
-
-    /**
-     * Main loop of the game using separate threads. Called at every frame.
-     */
-    private void tickInSepareteThreads() throws InterruptedException {
-        if (VERBOSE) {
-            System.out.println("tick: " + gs.getTick());
-        }
-
-        // Get player actions, 1 for each avatar still in the game
-        Types.ACTIONS[] actions = new Types.ACTIONS[NUM_PLAYERS];
-        for (int i = 0; i < NUM_PLAYERS; i++) {
-            Player p = players.get(i);
-
-            // Check if this player is still playing
-            if (gameStateObservations[i].winner() == Types.RESULT.INCOMPLETE) {
-                actors[i].player = p;
-                actors[i].gamestate = gameStateObservations[i];
-                threads[i] = new Thread(actors[i]);
-                threads[i].start();
-            } else {
-                threads[i] = null;
-                // This player is dead and action will be ignored
-                actions[i] = Types.ACTIONS.ACTION_STOP;
-            }
-        }
-
-        killThreads();
-
-        for (int i = 0; i < NUM_PLAYERS; i++) {
-            if (threads[i] != null)
-                actions[i] = actors[i].getValue();
-        }
-
-        if (LOG_GAME)
-            gameLog.addActions(actions);
-        // Advance the game state
-        gs.next(actions);
-        updateAssignedGameStates();
     }
 
     /**
@@ -535,10 +536,8 @@ public class Game {
         return logToGame(gameLog);
     }
 
-
     private static Game logToGame(GameLog log){
         Game game = null;
-
         if (log != null) {
             game = new Game(log.getSeed(), log.getStartingGameState(), log.getGameMode());
             game.setLogGame(false);
@@ -558,7 +557,7 @@ public class Game {
             }
 
             ArrayList<Player> players = new ArrayList<>();
-            int playerID = Types.TILETYPE.AGENT0.getKey();
+            int playerID = TILETYPE.AGENT0.getKey();
             players.add(new SimonSaysPlayer(playerID++, p1actionsQueue));
             players.add(new SimonSaysPlayer(playerID++, p2actionsQueue));
             players.add(new SimonSaysPlayer(playerID++, p3actionsQueue));

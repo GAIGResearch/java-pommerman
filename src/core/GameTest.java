@@ -35,7 +35,7 @@ class GameTest {
      * - Vision range of the player should instead be dependent on Avatar getVisionRange().
      */
     @Test
-    void playerSpecificGameStateObservations(){
+    void playerSpecificGameStateObservations() {
         int seed = 123456;
         int boardSize = 11;
         Game game;
@@ -52,7 +52,7 @@ class GameTest {
 
         while (!game.isEnded()) {
             GameState gs = game.getGameState().copy();
-            game.tick(); //This has to come after the gs is copied, because the old gs is stored in the test player
+            game.tick(false); //This has to come after the gs is copied, because the old gs is stored in the test player
             for (Player player : game.getPlayers()) {
                 TestingPlayer tp = (TestingPlayer)player;
                 GameState pgs = tp.getGameState();
@@ -83,45 +83,47 @@ class GameTest {
                 if (avatar != null) // IF we managed to find the avatar, use its vision range instead of the default.
                     radius = avatar.getVisionRange();
 
-                int xmin = Math.max(0, pos.x-radius);
-                int xmax = Math.min(board.length, pos.x+radius);
-                int ymin = Math.max(0, pos.y-radius);
-                int ymax = Math.min(board[0].length, pos.y+radius);
+                if (radius != -1 && pos != null) {
+                    int xmin = Math.max(0, pos.x-radius);
+                    int xmax = Math.min(board.length, pos.x+radius);
+                    int ymin = Math.max(0, pos.y-radius);
+                    int ymax = Math.min(board[0].length, pos.y+radius);
 
-                for (int i = xmin; i < xmax; i++) {
-                    for (int i1 = ymin; i1 < ymax; i1++) {
-                        assertNotEquals(5, board[i][i1].getKey());
+                    for (int i = xmin; i < xmax; i++) {
+                        for (int i1 = ymin; i1 < ymax; i1++) {
+                            assertNotEquals(5, board[i][i1].getKey());
+                        }
                     }
-                }
-                for (int i = 0; i < board.length; i++) {
-                    for (int i1 = 0; i1 < board[i].length; i1++) {
+                    for (int i = 0; i < board.length; i++) {
+                        for (int i1 = 0; i1 < board[i].length; i1++) {
 
-                        int value = board[i][i1].getKey();
-                        // The part of the board which is not supposed to be fogged out
-                        if (xmax >= i && i >= xmin && ymax >= i1 && i1 >= ymin) {
-                            if (5 == value) {
-                                System.out.println("fog at (" + i + " " + i1 + ") where it's not supposed to be");
-                                System.out.println("player pos "+pos);
-                            }
-                            assertNotEquals(5, value);
-                        } else { // The part of the board which IS supposed to be fogged out
-                            if (5 != value) {
-                                System.out.println("no fog at (" + i + " " + i1 + ") where it's supposed to be");
-                                System.out.println("player pos "+pos);
-                            }
-                            assertEquals(5, value);
+                            int value = board[i][i1].getKey();
+                            // The part of the board which is not supposed to be fogged out
+                            if (xmax >= i && i >= xmin && ymax >= i1 && i1 >= ymin) {
+                                if (5 == value) {
+                                    System.out.println("fog at (" + i + " " + i1 + ") where it's not supposed to be");
+                                    System.out.println("player pos " + pos);
+                                }
+                                assertNotEquals(5, value);
+                            } else { // The part of the board which IS supposed to be fogged out
+                                if (5 != value) {
+                                    System.out.println("no fog at (" + i + " " + i1 + ") where it's supposed to be");
+                                    System.out.println("player pos " + pos);
+                                }
+                                assertEquals(5, value);
 
-                            int[][] bombLife = pgs.model.getBombLife();
-                            if (bombLife[i][i1] != 0){
-                                System.out.println("Bomb life info should not be made available to the player");
-                            }
-                            assertEquals(0, bombLife[i][i1]);
+                                int[][] bombLife = pgs.model.getBombLife();
+                                if (bombLife[i][i1] != 0) {
+                                    System.out.println("Bomb life info should not be made available to the player");
+                                }
+                                assertEquals(0, bombLife[i][i1]);
 
-                            int[][] blastStrength = pgs.model.getBombBlastStrength();
-                            if (blastStrength[i][i1] != 0){
-                                System.out.println("Blast strength info should not be made available to the player");
+                                int[][] blastStrength = pgs.model.getBombBlastStrength();
+                                if (blastStrength[i][i1] != 0) {
+                                    System.out.println("Blast strength info should not be made available to the player");
+                                }
+                                assertEquals(0, blastStrength[i][i1]);
                             }
-                            assertEquals(0, blastStrength[i][i1]);
                         }
                     }
                 }
@@ -159,7 +161,7 @@ class GameTest {
 
             long start = System.currentTimeMillis();
             while (!game.isEnded()) {
-                game.tick();
+                game.tick(false);
                 steps++;
                 if (VERBOSE) {
                     game.printBoard();
@@ -249,7 +251,7 @@ class GameTest {
         for (int i = 0; i < gameList.size(); i++) {
             replayGame = gameList.get(i);
             while(!replayGame.isEnded()) {
-                replayGame.tick();
+                replayGame.tick(false);
                 if (VERBOSE) {
                     game.printBoard();
                 }
@@ -316,7 +318,7 @@ class GameTest {
 
             stateList.add(game.getGameState().copy());
             while(!game.isEnded()) {
-                game.tick();
+                game.tick(false);
                 if (VERBOSE) {
                     game.printBoard();
                 }
@@ -329,7 +331,7 @@ class GameTest {
             Game replayGame = game.getReplayGame();
             replayStateList.add(replayGame.getGameState().copy());
             while(!replayGame.isEnded()) {
-                replayGame.tick();
+                replayGame.tick(false);
                 if (VERBOSE) {
                     replayGame.printBoard();
                 }
