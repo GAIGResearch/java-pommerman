@@ -4,3 +4,5 @@
 \.idea/
 \out/
 *.iml
+
+res/gamelogs/json/

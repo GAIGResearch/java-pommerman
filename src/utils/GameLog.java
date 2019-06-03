@@ -16,12 +16,12 @@ import java.util.Scanner;
  * It can be serialized and stored to the gamelogs folder
  */
 public class GameLog implements Serializable {
-    private List<Types.ACTIONS[]> actionsArrayList = new ArrayList<>();
+    private List<Types.ACTIONS[]> actionsArrayList = new ArrayList<>(Types.MAX_GAME_TICKS);
     private long seed;
     private int size;
     private Types.GAME_MODE gameMode;
-    private final static String GAMELOGS_PATH = "res/gamelogs/";
-    private final static String JSON_GAMELOGS_PATH = GAMELOGS_PATH;//+"json/";
+    private final static String GAMELOGS_PATH = "res/gamelogs/ser";
+    private final static String JSON_GAMELOGS_PATH = "res/gamelogs/json";
 
     public static int REP = 0;
 
@@ -200,5 +200,40 @@ public class GameLog implements Serializable {
 
     public List<Types.ACTIONS[]> getActions() {
         return actionsArrayList;
+    }
+
+    public GameLog copy() {
+        GameLog copy = new GameLog(seed, size, gameMode);
+        List<Types.ACTIONS[]> actionsArrayList = new ArrayList<>();
+        for (Types.ACTIONS[] actions : this.actionsArrayList) {
+            Types.ACTIONS[] copyArr = Arrays.copyOf(actions, actions.length);
+            actionsArrayList.add(copyArr);
+        }
+        copy.actionsArrayList = actionsArrayList;
+        return copy;
+    }
+
+    @Override
+    public boolean equals(Object o){
+        if (o.getClass() != getClass())
+            return false;
+
+        GameLog gl = (GameLog) o;
+
+        if (gl.seed != seed)
+            return false;
+        if (gl.size != size)
+            return false;
+        if (gl.gameMode != gameMode)
+            return false;
+        if (gl.actionsArrayList.size() != actionsArrayList.size())
+            return false;
+        for (int i = 0; i < actionsArrayList.size(); i++) {
+            Types.ACTIONS[] actions = actionsArrayList.get(i);
+            Types.ACTIONS[] actions1 = gl.actionsArrayList.get(i);
+            if (!Arrays.equals(actions,actions1))
+                return false;
+        }
+        return true;
     }
 }

@@ -998,6 +998,8 @@ public class ForwardModel {
             for (int y = 0; y < size; y++) {
                 if (range == -1 || avatarPosition != null && avatarPosition.custom_dist(x, y) <= range) {
                     copy.board[y][x] = board[y][x];
+                    if (range == -1)
+                        copy.powerups[y][x] = powerups[y][x];
                 } else {
                     copy.board[y][x] = Types.TILETYPE.FOG;
                 }
@@ -1031,9 +1033,9 @@ public class ForwardModel {
 
         if (size != fm.size)
             return false;
-        if (!Types.TILETYPE.boardEquals(board, fm.board))
-            return false;
         if (!Types.TILETYPE.boardEquals(powerups, fm.powerups))
+            return false;
+        if (!Types.TILETYPE.boardEquals(board, fm.board))
             return false;
         if (!Arrays.deepEquals(bombBlastStrength, fm.bombBlastStrength))
             return false;

@@ -9,7 +9,6 @@ import utils.*;
 
 import java.util.*;
 
-import static utils.Types.ACTIONS;
 import static utils.Types.VISUALS;
 
 public class Run {
@@ -162,7 +161,7 @@ public class Run {
      * @param ki2 - secondary key controller
      * @param separateThreads - if separate threads should be used for the agents or not.
      */
-    static void runGame(Game g, KeyController ki1, KeyController ki2, boolean separateThreads) {
+    public static void runGame(Game g, KeyController ki1, KeyController ki2, boolean separateThreads) {
         WindowInput wi = null;
         GUI frame = null;
         if (VISUALS) {
@@ -178,41 +177,7 @@ public class Run {
     }
 
 
-    private static Game getReplayGame(){
-        GameLog lastLog = GameLog.deserializeLast();
-        Game game = new Game(lastLog.getSeed(), lastLog.getStartingGameState(), lastLog.getGameMode());
-        game.setLogGame(false);
-
-        Queue<ACTIONS> p1actionsQueue = new ArrayDeque<>();
-        Queue<ACTIONS> p2actionsQueue = new ArrayDeque<>();
-        Queue<ACTIONS> p3actionsQueue = new ArrayDeque<>();
-        Queue<ACTIONS> p4actionsQueue = new ArrayDeque<>();
-
-        List<ACTIONS[]> actionsArrayList = lastLog.getActions();
-
-        for (ACTIONS[] actions : actionsArrayList) {
-            p1actionsQueue.add(actions[0]);
-            p2actionsQueue.add(actions[1]);
-            p3actionsQueue.add(actions[2]);
-            p4actionsQueue.add(actions[3]);
-        }
-
-        ArrayList<Player> players = new ArrayList<>();
-        int playerID = Types.TILETYPE.AGENT0.getKey();
-        SimonSaysPlayer player1 = new SimonSaysPlayer(playerID++, p1actionsQueue);
-        SimonSaysPlayer player2 = new SimonSaysPlayer(playerID++, p2actionsQueue);
-        SimonSaysPlayer player3 = new SimonSaysPlayer(playerID++, p3actionsQueue);
-        SimonSaysPlayer player4 = new SimonSaysPlayer(playerID++, p4actionsQueue);
-        players.add(player1);
-        players.add(player2);
-        players.add(player3);
-        players.add(player4);
-
-        game.setPlayers(players);
-        return game;
-    }
-
-    private static void runGames(Game g, long seeds[], int repetitions, boolean useSeparateThreads) throws InterruptedException {
+    public static void runGames(Game g, long seeds[], int repetitions, boolean useSeparateThreads){
         int numPlayers = g.getPlayers().size();
         int[] winCount = new int[numPlayers];
         int[] tieCount = new int[numPlayers];

@@ -378,7 +378,11 @@ public class GameState {
             return false;
         if (playerIdx != gs.playerIdx)
             return false;
-        if (!avatar.equals(gs.avatar))
+        if ((avatar == null) || (gs.avatar == null)) {
+            if ((avatar == null) != (gs.avatar == null))
+                return false;
+        }
+        else if (!avatar.equals(gs.avatar))
             return false;
         return true;
     }

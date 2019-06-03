@@ -154,6 +154,8 @@ public class Game {
                 copy.gameStateObservations[i] = gameStateObservations[i].copy();
         }
 
+        if (gameLog != null)
+            copy.gameLog = gameLog.copy();
         return copy;
     }
 
@@ -518,7 +520,7 @@ public class Game {
      * initial state and game mode.
      * @return - last game logged.
      */
-    public static Game getReplayGame(){
+    public static Game getLastReplayGame(){
         GameLog lastLog;
         if (Game.LOG_GAME_JSON) {
             lastLog = GameLog.deserializeLastJSON();
@@ -526,9 +528,19 @@ public class Game {
             lastLog = GameLog.deserializeLast();
         }
 
+        return logToGame(lastLog);
+    }
+
+    public Game getReplayGame(){
+        return logToGame(gameLog);
+    }
+
+
+    private static Game logToGame(GameLog log){
         Game game = null;
-        if (lastLog != null) {
-            game = new Game(lastLog.getSeed(), lastLog.getStartingGameState(), lastLog.getGameMode());
+
+        if (log != null) {
+            game = new Game(log.getSeed(), log.getStartingGameState(), log.getGameMode());
             game.setLogGame(false);
 
             Queue<ACTIONS> p1actionsQueue = new ArrayDeque<>();
@@ -536,7 +548,7 @@ public class Game {
             Queue<ACTIONS> p3actionsQueue = new ArrayDeque<>();
             Queue<ACTIONS> p4actionsQueue = new ArrayDeque<>();
 
-            List<ACTIONS[]> actionsArrayList = lastLog.getActions();
+            List<ACTIONS[]> actionsArrayList = log.getActions();
 
             for (ACTIONS[] actions : actionsArrayList) {
                 p1actionsQueue.add(actions[0]);
@@ -555,6 +567,10 @@ public class Game {
             game.setPlayers(players);
         }
         return game;
+    }
+
+    public GameLog getGameLog() {
+        return gameLog;
     }
 
     /**

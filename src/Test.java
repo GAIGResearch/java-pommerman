@@ -20,86 +20,58 @@ public class Test {
         long seed = System.currentTimeMillis();
         int boardSize = Types.BOARD_SIZE;
         Types.GAME_MODE gameMode = Types.GAME_MODE.FFA;
-        boolean useSeparateThreads = false;
+        boolean useSeparateThreads = false;                 //true may be unstable, false is recommended.
 
-        Game game = new Game(seed, boardSize, Types.GAME_MODE.FFA, "");
+        Game game = new Game(seed, boardSize, gameMode, "");
 
         // Key controllers for human player s (up to 2 so far).
         KeyController ki1 = new KeyController(true);
         KeyController ki2 = new KeyController(false);
 
-        // Create parameters for players
-//        MCTSParams mctsParams = new MCTSParams();
-//        mctsParams.stop_type = mctsParams.STOP_ITERATIONS;
-//        RHEAParams rheaParams = new RHEAParams();
-//        rheaParams.heurisic_type = Constants.CUSTOM_HEURISTIC;
 
         // Create players
         ArrayList<Player> players = new ArrayList<>();
         int playerID = Types.TILETYPE.AGENT0.getKey();
 
+        // Define some heuristics
         MCTSParams mctsParams = new MCTSParams();
         mctsParams.stop_type = mctsParams.STOP_ITERATIONS;
         mctsParams.heuristic_method = mctsParams.CUSTOM_HEURISTIC;
-
         RHEAParams rheaParams = new RHEAParams();
         rheaParams.heurisic_type = Constants.CUSTOM_HEURISTIC;
 
-        Types.DEFAULT_VISION_RANGE = 1;
+        /* Different available players */
 
 //        players.add(new HumanPlayer(ki1, playerID++));
-//        players.add(new DoNothingPlayer(playerID++));
-//        players.add(new OSLAPlayer(seed, playerID++));
-//        players.add(new DoNothingPlayer(playerID++));
-        players.add(new MCTSPlayer(seed, playerID++, mctsParams));
-
-//        players.add(new HumanPlayer(ki1, playerID++));
-
-//        players.add(new DoNothingPlayer(playerID++));
-
 //        players.add(new HumanPlayer(ki2, playerID++));
-
-
-//        players.add(new OSLAPlayer(seed, playerID++));
-//        players.add(new OSLAPlayer(seed, playerID++));
-//        players.add(new OSLAPlayer(seed, playerID++));
-
-//        players.add(new RandomPlayer(seed, playerID++));
-//        players.add(new RandomPlayer(seed, playerID++));
-//        players.add(new RandomPlayer(seed, playerID++));
-//        players.add(new RandomPlayer(seed, playerID++));
-//        players.add(new SimplePlayer(seed, playerID++));
-//        players.add(new RHEAPlayer(seed, playerID++, rheaParams));
-
-        players.add(new SimplePlayer(seed, playerID++));
-        players.add(new RHEAPlayer(seed, playerID++, rheaParams));
-//        players.add(new SimplePlayer(seed, playerID++));
-        players.add(new SimplePlayer(seed, playerID++));
-//
-//        players.add(new RHEAPlayer(seed, playerID++, rheaParams));
-//        players.add(new MCTSPlayer(seed, playerID++, mctsParams));
-//        players.add(new MCTSPlayer(seed, playerID++, mctsParams));
-//        players.add(new RHEAPlayer(seed, playerID++, rheaParams));
-//        players.add(new RHEAPlayer(seed, playerID++, rheaParams));
-
 //        players.add(new DoNothingPlayer(playerID++));
-//        players.add(new DoNothingPlayer(playerID++));
+        players.add(new OSLAPlayer(seed, playerID++));
+        players.add(new MCTSPlayer(seed, playerID++, mctsParams));
+        players.add(new SimplePlayer(seed, playerID++));
+        players.add(new SimpleEvoAgent(seed, playerID++));
+//        players.add(new RHEAPlayer(seed, playerID++, rheaParams));
+
 
         // Make sure we have exactly NUM_PLAYERS players
-        assert players.size() == Types.NUM_PLAYERS;
+        assert players.size() == Types.NUM_PLAYERS : "There should be " + Types.NUM_PLAYERS +
+                                                     " added to the game, but there are " + players.size();
+
+        //Assign players and run the game.
         game.setPlayers(players);
 
+        //Run a single game with the players
         Run.runGame(game, ki1, ki2, useSeparateThreads);
-        
-        /* Run the replay: */
+
+        /* Uncomment to run the replay of the previous game: */
 //        if (game.isLogged()){
-//            game = Game.getReplayGame();
-//            Run.runGame(game, ki1, ki2, useSeparateThreads);
+//            Game replay = Game.getLastReplayGame();
+//            Run.runGame(replay, ki1, ki2, useSeparateThreads);
+//            assert(replay.getGameState().equals(game.getGameState()));
 //        }
 
-        /* Run with no visuals, N Times: */
+        /* Run with no visuals, N repetitions TIMES number-seeds: */
 //        int N = 20;
-//        Run.runGames(game, N, useSeparateThreads, false);
+//        Run.runGames(game, new long[]{seed}, N, useSeparateThreads);
 
     }
 
