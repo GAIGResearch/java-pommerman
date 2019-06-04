@@ -66,7 +66,7 @@ public class MCTSPlayer extends ParameterizedPlayer {
     }
 
     /**
-     * Actio called every game tick. It must return an action to play in the real game.
+     * Action called every game tick. It must return an action to play in the real game.
      * @param gs - current game state.
      * @return the action to apply in the game.
      */
