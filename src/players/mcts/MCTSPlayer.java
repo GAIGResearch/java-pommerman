@@ -30,6 +30,12 @@ public class MCTSPlayer extends ParameterizedPlayer {
         this(seed, id, null);
     }
 
+    /**
+     * Constructors that receive parameters
+     * @param seed seed for the algorithm to use in the random generator
+     * @param id ID of this player in the game.
+     * @param params Parameters for MCTS.
+     */
     public MCTSPlayer(long seed, int id, MCTSParams params) {
         super(seed, id, params);
         reset(seed, id);
@@ -42,6 +48,11 @@ public class MCTSPlayer extends ParameterizedPlayer {
         }
     }
 
+    /**
+     * Resets this player with seed and ID
+     * @param seed seed for the algorithm to use in the random generator
+     * @param playerID ID of this player in the game.
+     */
     @Override
     public void reset(long seed, int playerID) {
         this.seed = seed;
@@ -54,9 +65,15 @@ public class MCTSPlayer extends ParameterizedPlayer {
         }
     }
 
+    /**
+     * Actio called every game tick. It must return an action to play in the real game.
+     * @param gs - current game state.
+     * @return the action to apply in the game.
+     */
     @Override
     public Types.ACTIONS act(GameState gs) {
 
+        //This allows us to use a time-bounded budget for MCTS
         ElapsedCpuTimer ect = new ElapsedCpuTimer();
         ect.setMaxTimeMillis(params.num_time);
 
