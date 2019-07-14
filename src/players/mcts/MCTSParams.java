@@ -1,7 +1,7 @@
 package players.mcts;
 
-import javafx.util.Pair;
 import players.optimisers.ParameterSet;
+import utils.Pair;
 
 import java.util.ArrayList;
 import java.util.HashMap;

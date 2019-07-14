@@ -14,6 +14,12 @@ public class DoNothingPlayer extends Player {
     }
 
     @Override
+    public int[] getMessage() {
+        // default message
+        return new int[Types.MESSAGE_LENGTH];
+    }
+
+    @Override
     public Player copy() {
         return new DoNothingPlayer(playerID);
     }

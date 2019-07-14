@@ -1,9 +1,6 @@
 package players.optimisers.evodef;
 
 import core.Game;
-import players.DoNothingPlayer;
-import players.SimplePlayer;
-import players.mcts.MCTSParams;
 import players.mcts.MCTSPlayer;
 import players.optimisers.ParameterizedPlayer;
 import players.Player;
@@ -25,18 +22,21 @@ public class EvaluatePommerman implements NoisySolutionEvaluator, SearchSpace, F
 
     private EvolutionLogger logger;
     private ParameterizedPlayer player;
+    private boolean topLevel;
 
-    public EvaluatePommerman(ArrayList<Integer> possibleValues, ParameterizedPlayer player) {
-        this(possibleValues, player, 0);
+    public EvaluatePommerman(ArrayList<Integer> possibleValues, ParameterizedPlayer player, boolean topLevel) {
+        this(possibleValues, player, 0, topLevel);
     }
 
-    private EvaluatePommerman(ArrayList<Integer> possibleValues, ParameterizedPlayer player, double noise) {
+    private EvaluatePommerman(ArrayList<Integer> possibleValues, ParameterizedPlayer player, double noise,
+                              boolean topLevel) {
         this.nDims = possibleValues.size();
         this.m = possibleValues;
         this.noise = noise;
         this.player = player;
+        this.topLevel = topLevel;
         logger = new EvolutionLogger();
-        player.getParameters().printParameterSearchSpace();
+//        player.getParameters().printParameterSearchSpace();
     }
 
     @Override
@@ -79,7 +79,7 @@ public class EvaluatePommerman implements NoisySolutionEvaluator, SearchSpace, F
 
         // Translate the given parameters, assign them to the player and call the reset() method to make sure all
         // is initialized properly.
-        player.translateParameters(a);
+        player.translateParameters(a, topLevel);
 
         // Create the game
         int boardSize = Types.BOARD_SIZE;
@@ -98,14 +98,15 @@ public class EvaluatePommerman implements NoisySolutionEvaluator, SearchSpace, F
             // Create opponents
             for (int j = 0; j < NUM_PLAYERS; j++) {
                 if (j != i) {
-                    players[j] = new SimplePlayer(seed, Types.TILETYPE.AGENT0.getKey() + j);
+                    players[j] = new MCTSPlayer(seed, Types.TILETYPE.AGENT0.getKey() + j);
                 }
             }
 
             // Start the game.
             game.setPlayers(new ArrayList<>(Arrays.asList(players)));
             Types.RESULT[] results = game.run(false);
-            fit += (results[i] == Types.RESULT.WIN ? 1.0 : (results[0] == Types.RESULT.LOSS ? 0.0 : 0.5));
+            double thisResult = (results[i] == Types.RESULT.WIN ? 1.0 : (results[i] == Types.RESULT.LOSS ? 0.0 : 0.5));
+            fit += thisResult;
         }
 
         // Return result of this player. Use win or loss as fitness

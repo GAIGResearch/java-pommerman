@@ -21,7 +21,7 @@ public class GameLog implements Serializable {
     private int size;
     private Types.GAME_MODE gameMode;
     private final static String GAMELOGS_PATH = "res/gamelogs/ser";
-    private final static String JSON_GAMELOGS_PATH = "res/gamelogs/json";
+    private final static String JSON_GAMELOGS_PATH = "res/gamelogs/";
 
     public static int REP = 0;
 

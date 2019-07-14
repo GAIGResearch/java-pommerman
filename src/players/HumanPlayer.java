@@ -26,6 +26,12 @@ public class HumanPlayer extends Player {
     }
 
     @Override
+    public int[] getMessage() {
+        // default message
+        return new int[Types.MESSAGE_LENGTH];
+    }
+
+    @Override
     public Player copy() {
         return new HumanPlayer(getKeyAdapter().copy(), playerID);
     }

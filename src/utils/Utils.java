@@ -4,10 +4,7 @@ import objects.Avatar;
 import objects.Bomb;
 import objects.GameObject;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Random;
+import java.util.*;
 
 import static utils.Types.FLAME_LIFE;
 
@@ -210,7 +207,9 @@ public class Utils
         for (GameObject g1: golist1) {
             for (GameObject g2: golist2) {
                 if (!g1.equals(g2)) {
-                    if (!g1.getDesiredCoordinate().equals(g1.getPosition()) &&
+                    if (g1.getDesiredCoordinate() != null && g1.getPosition() != null &&
+                            g2.getDesiredCoordinate() != null && g2.getPosition() != null &&
+                            !g1.getDesiredCoordinate().equals(g1.getPosition()) &&
                             !g2.getDesiredCoordinate().equals(g2.getPosition())) {
                         // The objects need to both have moved to count for a swap check.
                         if (g1.getDesiredCoordinate().equals(g2.getPosition()) &&
@@ -336,14 +335,18 @@ public class Utils
         if(position.x == nextPosition.x){
             if(position.y < nextPosition.y)
                 return Types.DIRECTIONS.DOWN;
-            else
+            else if(position.y > nextPosition.y)
                 return Types.DIRECTIONS.UP;
+            else
+                return Types.DIRECTIONS.NONE;
         }
         else if(position.y == nextPosition.y){
             if(position.x < nextPosition.x)
                 return Types.DIRECTIONS.RIGHT;
-            else
+            else if(position.x > nextPosition.x)
                 return Types.DIRECTIONS.LEFT;
+            else
+                return Types.DIRECTIONS.NONE;
         }
 
         throw new IllegalArgumentException("Invalid position transition received: " + position + " to " + nextPosition);
@@ -374,6 +377,8 @@ public class Utils
             return Types.ACTIONS.ACTION_RIGHT;
         else if(direction == Types.DIRECTIONS.UP)
             return Types.ACTIONS.ACTION_UP;
+        else if(direction == Types.DIRECTIONS.NONE)
+            return Types.ACTIONS.ACTION_STOP;
 
         System.out.println("WARNING: " + direction + " is an invalid direction, using (0,0).");
         return Types.ACTIONS.ACTION_STOP;
@@ -488,7 +493,7 @@ public class Utils
     public static ArrayList<GameObject> findObjectInList(Vector2d pos, ArrayList<GameObject> objList) {
         ArrayList<GameObject> gos = new ArrayList<>();
         for (GameObject go : objList) {
-            if (go.getPosition().equals(pos)) {
+            if (go.getPosition() != null && go.getPosition().equals(pos)) {
                 gos.add(go);
             }
         }

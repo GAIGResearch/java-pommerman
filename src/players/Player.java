@@ -31,6 +31,12 @@ public abstract class Player {
     public abstract Types.ACTIONS act(GameState gs);
 
     /**
+     * Function that is called for requesting a message from the player
+     * @return int array, representing the message to be passed for the teammate
+     */
+    public abstract int[] getMessage();
+
+    /**
      * Function called at the end of the game. May be used by agents for final analysis.
      * @param reward - final reward for this agent.
      */

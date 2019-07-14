@@ -6,7 +6,7 @@ import utils.Types;
 import java.util.ArrayList;
 
 /**
- * This interface provides the possibility of defining different team configurations for Pommerman
+ * This interface provides the possibiilty of define different team configurations for Pommerman
  */
 public interface IGameConfig
 {

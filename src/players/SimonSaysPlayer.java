@@ -35,13 +35,18 @@ public class SimonSaysPlayer extends Player {
         actionsQueue.addAll(Arrays.asList(DEFAULT_ACTIONS));
     }
 
-
     @Override
     public Types.ACTIONS act(GameState gs) {
         Types.ACTIONS action = actionsQueue.poll();
         if (action == null)
             action = Types.ACTIONS.ACTION_STOP;
         return action;
+    }
+
+    @Override
+    public int[] getMessage() {
+        // default message
+        return new int[Types.MESSAGE_LENGTH];
     }
 
     @Override

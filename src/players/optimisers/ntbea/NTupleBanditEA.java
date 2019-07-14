@@ -1,65 +1,52 @@
 package players.optimisers.ntbea;
 
 import players.optimisers.evodef.*;
-import utils.ElapsedCpuTimer;
 import utils.StatSummary;
+
+import java.util.Arrays;
 
 /**
  * Created by sml on 09/01/2017.
  */
 
+@SuppressWarnings({"unused", "FieldCanBeLocal"})
 public class NTupleBanditEA implements EvoAlg {
 
     // public NTupleSystem banditLandscapeModel;
-    public BanditLandscapeModel banditLandscapeModel;
+    private BanditLandscapeModel banditLandscapeModel;
 
     // the exploration rate normally called K or C - called kExplore here for clarity
-    public double kExplore = 100.0; // 1.0; // Math.sqrt(0.4);
+    private double kExplore = 100.0; // 1.0; // Math.sqrt(0.4);
     // the number of neighbours to explore around the current point each time
     // they are only explored IN THE FITNESS LANDSCAPE MODEL, not by sampling the fitness function
-    int nNeighbours = 50;
-
+    private int nNeighbours = 50;
 
     // when searching for the best solution overall, at the end of the run
     // we ask the NTupleMemory to explore a neighbourhood around each
     // of the points added during the search
     // this param controls the size of the neighbourhood
     int neighboursWhenFindingBest = 10;
-    static double defaultEpsilon = 0.5;
-    double epsilon = defaultEpsilon;
+    private static double defaultEpsilon = 0.5;
+    private double epsilon = defaultEpsilon;
 
-    public int nSamples = 1;
+    private int nSamples = 1;
+    private int[] seed;
+    private SolutionEvaluator evaluator;
+    private int reportFrequency = 10000;
 
-    public void setSamplingRate(int n) {
-        nSamples = n;
-    }
-
+    // want to reset for comparability tests involving multiple runs
+    // but turn this off to accumulate knowledge from run to run
+    private boolean resetModelEachRun = true;
+    private boolean logBestYet = false;
 
     public NTupleBanditEA(double kExplore, int nNeighbours) {
         this.kExplore = kExplore;
         this.nNeighbours = nNeighbours;
     }
 
+    NTupleBanditEA() {}
 
-    public NTupleBanditEA() {
-    }
-
-    public NTupleBanditEA setKExplore(double kExplore) {
-        this.kExplore = kExplore;
-        return this;
-    }
-
-    public NTupleBanditEA setReportFrequency(int reportFrequency) {
-        this.reportFrequency = reportFrequency;
-        return this;
-    }
-
-    public NTupleBanditEA setNeighbours(int nNeighbours) {
-        this.nNeighbours = nNeighbours;
-        return this;
-    }
-
-    StatSummary fitness(SolutionEvaluator evaluator, int[] sol) {
+    private StatSummary fitness(SolutionEvaluator evaluator, int[] sol) {
         StatSummary ss = new StatSummary();
         for (int i = 0; i < nSamples; i++) {
             double fitness = evaluator.evaluate(sol);
@@ -69,28 +56,6 @@ public class NTupleBanditEA implements EvoAlg {
         return ss;
     }
 
-
-    int[] seed;
-
-    public void setInitialSeed(int[] seed) {
-        this.seed = SearchSpaceUtil.copyPoint(seed);
-    }
-
-    SolutionEvaluator evaluator;
-
-    int reportFrequency = 10000;
-
-    // want to reset for comparability tests involving multiple runs
-    // but turn this off to accumulate knowledge from run to run
-    public boolean resetModelEachRun = true;
-
-    public NTupleBanditEA setResetModelEachRun(boolean resetModelEachRun) {
-        this.resetModelEachRun = resetModelEachRun;
-        return this;
-    }
-
-    public boolean logBestYet = false;
-
     @Override
     public int[] runTrial(SolutionEvaluator evaluator, int nEvals) {
 
@@ -99,15 +64,14 @@ public class NTupleBanditEA implements EvoAlg {
         SearchSpace searchSpace = evaluator.searchSpace();
         EvolutionLogger logger = evaluator.logger();
         DefaultMutator mutator = new DefaultMutator(searchSpace);
-        banditLandscapeModel.setSearchSpace(searchSpace);
 
         nNeighbours = (int) Math.min(nNeighbours, SearchSpaceUtil.size(searchSpace) / 4);
-        System.out.println("Set neighbours to: " + nNeighbours);
+//        System.out.println("Set neighbours to: " + nNeighbours);
 
         if (banditLandscapeModel == null) {
-            // System.out.println("NTupleBanditEA.runTrial: Creating new landscape model");
-            banditLandscapeModel = new NTupleSystem().setSearchSpace(searchSpace);
+            banditLandscapeModel = new NTupleSystem();
         }
+        banditLandscapeModel.setSearchSpace(searchSpace);
         banditLandscapeModel.setEpsilon(epsilon);
 
         // create an NTuple fitness landscape model if needed
@@ -118,8 +82,6 @@ public class NTupleBanditEA implements EvoAlg {
 
         // then each time around the loop try the following
         // create a neighbourhood set of points and pick the best one that combines it's exploitation and evaluation scores
-
-        StatSummary ss = new StatSummary();
 
         int[] p;
         if (seed == null) {
@@ -132,13 +94,11 @@ public class NTupleBanditEA implements EvoAlg {
 
         while (evaluator.nEvals() < nEvals) {
 
-            // each time around the loop we make one fitness evaluation of p
-            // and add this NEW information to the memory
+            // each time around the loop we make one fitness evaluation of p and add this NEW information to the memory
             int prevEvals = evaluator.nEvals();
+            System.out.println(prevEvals + " / " + nEvals);
 
-            // the new version enables resampling
             double fitness;
-
             if (nSamples == 1) {
                 fitness = evaluator.evaluate(p);
             } else {
@@ -146,34 +106,28 @@ public class NTupleBanditEA implements EvoAlg {
             }
             // System.out.println();
 
-            if (reportFrequency > 0 && evaluator.nEvals() % reportFrequency == 0) {
-                System.out.format("Iteration: %d\t %.1f\n", evaluator.nEvals(), fitness);
-                System.out.println(evaluator.logger().ss);
-                System.out.println();
+//            if (reportFrequency > 0 && evaluator.nEvals() % reportFrequency == 0) {
+//                System.out.format("Iteration: %d\t %.1f\n", evaluator.nEvals(), fitness);
+//                System.out.println(evaluator.logger().ss);
+//                System.out.println();
                 // System.out.println(p.length);
                 // System.out.println(p);
-            }
+//            }
 
-            ElapsedCpuTimer t = new ElapsedCpuTimer();
-
+            System.out.println(fitness);
             banditLandscapeModel.addPoint(p, fitness);
 
-            // ss.add(t.elapsed());
-//            System.out.println(ss);
 //            System.out.println("N Neighbours: " + nNeighbours);
             EvaluateChoices evc = new EvaluateChoices(banditLandscapeModel, kExplore);
-            // evc.add(p);
 
             // and then explore the neighbourhood around p, balancing exploration and exploitation
             // depending on the mutation function, some of the neighbours could be far away
             // or some of them could be duplicates - duplicates a bit wasteful so filter these
             // out - repeat until we have the required number of unique neighbours
-
             while (evc.n() < nNeighbours) {
                 int[] pp = mutator.randMut(p);
                 evc.add(pp);
             }
-
             // evc.report();
 
             // now set the next point to explore
@@ -181,7 +135,6 @@ public class NTupleBanditEA implements EvoAlg {
 //            logger.keepBest(picker.getBest(), picker.getBestScore());
 
             int diffEvals = evaluator.nEvals() - prevEvals;
-
             if (logBestYet) {
                 int[] bestYet = banditLandscapeModel.getBestOfSampled();
                 for (int i = 0; i < diffEvals; i++) {
@@ -189,11 +142,8 @@ public class NTupleBanditEA implements EvoAlg {
                 }
             }
 
-            // System.out.println("Best solution: " + Arrays.toString(evc.picker.getBest()) + "\t: " + evc.picker.getBestScore());
+             System.out.println("Best solution: " + Arrays.toString(evc.picker.getBest()) + "\t: " + evc.picker.getBestScore());
         }
-
-//        System.out.println("Time for calling addPoint: ");
-//        System.out.println(ss);
 
         // int[] solution = banditLandscapeModel.getBestSolution();
         int[] solution = banditLandscapeModel.getBestOfSampled();
@@ -217,8 +167,38 @@ public class NTupleBanditEA implements EvoAlg {
         return evaluator.logger();
     }
 
+    @Override
+    public void setSamplingRate(int n) {
+        nSamples = n;
+    }
+
+    @Override
+    public void setInitialSeed(int[] seed) {
+        this.seed = SearchSpaceUtil.copyPoint(seed);
+    }
+
     public NTupleBanditEA setEpsilon(double epsilon) {
         this.epsilon = epsilon;
+        return this;
+    }
+
+    NTupleBanditEA setKExplore(double kExplore) {
+        this.kExplore = kExplore;
+        return this;
+    }
+
+    public NTupleBanditEA setReportFrequency(int reportFrequency) {
+        this.reportFrequency = reportFrequency;
+        return this;
+    }
+
+    public NTupleBanditEA setNeighbours(int nNeighbours) {
+        this.nNeighbours = nNeighbours;
+        return this;
+    }
+
+    public NTupleBanditEA setResetModelEachRun(boolean resetModelEachRun) {
+        this.resetModelEachRun = resetModelEachRun;
         return this;
     }
 }

@@ -16,7 +16,7 @@ public class RHEAPlayer extends ParameterizedPlayer {
     private RHEAParams params;
 
     public RHEAPlayer(long seed, int playerID) {
-        this(seed, playerID, null);
+        this(seed, playerID, new RHEAParams());
     }
 
     public RHEAPlayer(long seed, int playerID, RHEAParams params) {
@@ -33,6 +33,7 @@ public class RHEAPlayer extends ParameterizedPlayer {
         this.params = (RHEAParams) getParameters();
         if (this.params == null) {
             this.params = new RHEAParams();
+            super.setParameters(this.params);
         }
 
         // Set up random generator
@@ -54,6 +55,12 @@ public class RHEAPlayer extends ParameterizedPlayer {
         }
         setup(gs, elapsedTimer);
         return gInterface.translate(player.getAction(elapsedTimer, gs.nActions()));
+    }
+
+    @Override
+    public int[] getMessage() {
+        // default message
+        return new int[Types.MESSAGE_LENGTH];
     }
 
     private void setup(GameState rootState, ElapsedCpuTimer elapsedTimer) {

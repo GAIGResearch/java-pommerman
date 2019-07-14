@@ -30,8 +30,8 @@ public abstract class ParameterizedPlayer extends Player {
         return params;
     }
 
-    public void translateParameters(int[] a) {
-        params.translate(a);
+    public void translateParameters(int[] a, boolean topLevel) {
+        params.translate(a, topLevel);
     }
 
     public final void setSeed(long seed) {

@@ -17,9 +17,12 @@ import java.util.Map;
 
 public class RunNTBEA {
     public static void main(String[] args) {
+        int nEvals = Integer.parseInt(args[0]);
+        boolean topLevel = Boolean.parseBoolean(args[1]);
 
         RHEAParams parameterSet = new RHEAParams();
         ParameterizedPlayer player = new RHEAPlayer(0, 0, parameterSet);
+        parameterSet.printParameterSearchSpace();
 
 //        MCTSParams parameterSet = new MCTSParams();
 //        ParameterizedPlayer player = new MCTSPlayer(0, 0, parameterSet);
@@ -33,12 +36,13 @@ public class RunNTBEA {
         assert params != null;
 
         for (String p : paramList) {
-            if (parameterSet.getParameterParent(p) == null) {  // Use only top level parameters
+            // Use only top level parameters if topLevel=false
+            if (!topLevel || parameterSet.getParameterParent(p) == null) {
                 possibleValues.add(params.get(p).length);
             }
         }
 
-        EvaluatePommerman problem = new EvaluatePommerman(possibleValues, player);
+        EvaluatePommerman problem = new EvaluatePommerman(possibleValues, player, topLevel);
         double kExplore = 2;
         double epsilon = 0.5;
         NTupleBanditEA ntbea = new NTupleBanditEA().setKExplore(kExplore).setEpsilon(epsilon);
@@ -54,7 +58,6 @@ public class RunNTBEA {
         model.useNTuple = true;
         ntbea.setModel(model);
 
-        int nEvals = 50;
         int[] solution = ntbea.runTrial(problem, nEvals);
 
 //        System.out.println("Report: ");
@@ -73,7 +76,7 @@ public class RunNTBEA {
 //        System.out.println("k Explore: " + ntbea.kExplore);
 //        System.out.println(timer);
 
-        player.getParameters().translate(solution);
+        player.getParameters().translate(solution, topLevel);
         player.getParameters().printParameters();
     }
 }

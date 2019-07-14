@@ -1,6 +1,5 @@
 package objects;
 
-import javafx.beans.binding.ObjectBinding;
 import utils.Types;
 import utils.Vector2d;
 
@@ -121,6 +120,14 @@ public class GameObject {
         }
     }
 
+    public void setPositionNull() {
+        this.position = null;
+    }
+
+    public void setDesiredCoordinateNull() {
+        this.desiredCoordinate = null;
+    }
+
     public void setLife(int life) {
         this.life = life;
     }
@@ -132,11 +139,14 @@ public class GameObject {
     public GameObject copy(){
         GameObject copy = new GameObject(type);
         copy.life = life;
+
         copy.desiredCoordinate = desiredCoordinate.copy();
         copy.id = hashCode();
+
         if (position != null) {
             copy.position = position.copy();
         }
+
         return copy;
     }
 

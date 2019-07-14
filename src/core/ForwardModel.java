@@ -96,7 +96,8 @@ public class ForwardModel {
      * @param alive Indices of players alive
      * @param game_mode Mode of game
      */
-    ForwardModel(int[][] intBoard, int[][] bombBlastStrength, int[][] bombLife, int[] alive, Types.GAME_MODE game_mode){
+    ForwardModel(int[][] intBoard, int[][] bombBlastStrength, int[][] bombLife, int[] alive, Types.GAME_MODE game_mode, int playerIdx){
+
         // this is used for communicating with the python client
         this.size = intBoard.length;
         this.game_mode = game_mode;
@@ -105,9 +106,34 @@ public class ForwardModel {
         this.bombBlastStrength = bombBlastStrength;
         this.bombLife = bombLife;
 
-        // get alive agents
-        for (GameObject agent : agents){
-            ((Avatar)(agent)).setWinner(Types.RESULT.LOSS);
+        Vector2d avatarPosition = null;
+        int range = -1;
+
+        if (playerIdx >= 0) {
+            Avatar avatar = (Avatar) agents[playerIdx];
+            avatarPosition = avatar.getPosition();
+            range = avatar.getVisionRange();
+        }
+
+        if (range != -1) {
+            for (int i = 0; i < this.agents.length; i++) {
+                GameObject a = this.agents[i];
+
+                if(a.getPosition() == null){
+                    a.setPositionNull();
+                    a.setDesiredCoordinateNull();
+                }
+                else if (a.getPosition().custom_dist(avatarPosition) > range) {
+                    // This agent's position is not observed
+                    a.setPositionNull();
+                    a.setDesiredCoordinateNull();
+                }
+
+                // If not player observing, reset properties to default
+                if (i != playerIdx) {
+                    ((Avatar) a).reset();
+                }
+            }
         }
 
         HashSet<TILETYPE> agentTypes = Types.TILETYPE.getAgentTypes();
@@ -173,6 +199,10 @@ public class ForwardModel {
             agents[type.getKey() - Types.TILETYPE.AGENT0.getKey()] = new Avatar(type.getKey(), gameMode);
         }
 
+        for (GameObject agent : agents){
+            ((Avatar)(agent)).setWinner(Types.RESULT.LOSS);
+        }
+
         if (alive == null) {
             // By default everyone is alive
             aliveAgents = new ArrayList<>(Arrays.asList(agents));
@@ -233,7 +263,7 @@ public class ForwardModel {
      * It modifies THIS object to time t+1.
      * @param playerActions player actions to execute in this game state.
      */
-    void next(Types.ACTIONS[] playerActions) {
+    void next(Types.ACTIONS[] playerActions, int gsTick) {
         if (VERBOSE_FM_DEBUG && trueModel) {
             System.out.println();
         }
@@ -289,13 +319,15 @@ public class ForwardModel {
         // If bombs were bounced back, then they may overlap players again, bounce players back too if players moved.
         for (GameObject b: bombs) {
             for (GameObject p : agents) {
-                if (!p.getDesiredCoordinate().equals(p.getPosition()) &&
-                        p.getDesiredCoordinate().equals(b.getDesiredCoordinate())) {
-                    // Bounce agent back
-                    if (VERBOSE_FM_DEBUG && trueModel) {
-                        System.out.println("Reverting " + p.getType() + " overlap bomb late update.");
+                if(p.getDesiredCoordinate() != null && p.getPosition() != null) {
+                    if (!p.getDesiredCoordinate().equals(p.getPosition()) &&
+                            p.getDesiredCoordinate().equals(b.getDesiredCoordinate())) {
+                        // Bounce agent back
+                        if (VERBOSE_FM_DEBUG && trueModel) {
+                            System.out.println("Reverting " + p.getType() + " overlap bomb late update.");
+                        }
+                        setDesiredCoordinate(p, p.getPosition(), board);
                     }
-                    setDesiredCoordinate(p, p.getPosition(), board);
                 }
             }
             // Update bomb positions to their desired positions
@@ -304,9 +336,11 @@ public class ForwardModel {
 
         // 9. Players pick up power-ups
         for (GameObject p: aliveAgents) {
-            int x = p.getDesiredCoordinate().x;
-            int y = p.getDesiredCoordinate().y;
-            pickPowerUp((Avatar)p, x, y);
+            if(p.getDesiredCoordinate() != null) {
+                int x = p.getDesiredCoordinate().x;
+                int y = p.getDesiredCoordinate().y;
+                pickPowerUp((Avatar) p, x, y);
+            }
         }
 
         // 10. Explode bombs
@@ -360,7 +394,34 @@ public class ForwardModel {
             bombLife[position.y][position.x] = bomb.getLife();
         }
 
-        // 16. Logging
+        // 16. Collapse
+        if(Types.COLLAPSE_BOARD) {
+            if (gsTick >= COLLAPSE_START && (gsTick - COLLAPSE_START) % COLLAPSE_STEP == 0) {
+
+                int collapse_stage = (gsTick - COLLAPSE_START) / COLLAPSE_STEP; // 0, 1, 2, ...
+
+                int ring_min = collapse_stage;
+                int ring_max = size - collapse_stage - 1;
+
+                ArrayList<GameObject> collapsedAgents = new ArrayList<>();
+
+                for (int x = ring_min; x <= ring_max; x++) {
+                    if (x == ring_min || x == ring_max) {
+                        for (int y = ring_min + 1; y <= ring_max - 1; y++) {
+                            collapseTile(x, y, collapsedAgents);
+                        }
+                    }
+                    collapseTile(x, ring_min, collapsedAgents);
+                    collapseTile(x, ring_max, collapsedAgents);
+                }
+
+                // Kill agents.
+                if (collapsedAgents.size() > 0)
+                    Types.getGameConfig().processDeadAgents(agents, aliveAgents, collapsedAgents, game_mode);
+            }
+        }
+
+        // 17. Logging
         if(trueModel && LOGGING_STATISTICS) {
             for (GameObject p : aliveAgents) {
                 int agentID = p.getType().getKey() - 10;
@@ -378,6 +439,41 @@ public class ForwardModel {
         }
     }
 
+    private void collapseTile(int x, int y, ArrayList<GameObject> collapsedAgents){
+        //System.out.println("Collapsing "+x+" "+y);
+
+        Types.TILETYPE tiletype = board[y][x];
+
+        if(tiletype == Types.TILETYPE.BOMB){
+            Vector2d pos = new Vector2d(x, y);
+            ArrayList<GameObject> gos = findObjectInList(pos, bombs);
+            for (GameObject go: gos) {
+                bombs.remove(go);
+            }
+            bombLife[y][x] = 0;
+            bombBlastStrength[y][x] = 0;
+        }
+        else if(tiletype == Types.TILETYPE.FLAMES){
+            Vector2d pos = new Vector2d(x, y);
+            ArrayList<GameObject> gos = findObjectInList(pos, flames);
+            for (GameObject go: gos) {
+                flames.remove(go);
+            }
+        }
+        else if(tiletype == Types.TILETYPE.AGENT0 ||
+                tiletype == Types.TILETYPE.AGENT1 ||
+                tiletype == Types.TILETYPE.AGENT2 ||
+                tiletype == Types.TILETYPE.AGENT3){
+
+            Vector2d pos = new Vector2d(x, y);
+            ArrayList<GameObject> gos = findObjectInList(pos, aliveAgents);
+            for (GameObject go: gos) {
+                collapsedAgents.add(go);
+            }
+        }
+        board[y][x] = Types.TILETYPE.RIGID;
+    }
+
     /**
      * Handles the movement of bombs, including kicking them if the agent can do so.
      */
@@ -385,51 +481,57 @@ public class ForwardModel {
     {
         for (GameObject b: bombs) {
             for (GameObject p: aliveAgents) {
-                if (b.getDesiredCoordinate().equals(b.getPosition())){
-                    ((Bomb)b).setVelocity(new Vector2d());
-                }
-                if (p.getDesiredCoordinate().equals(b.getDesiredCoordinate())) {
-                    // Agent tried to move onto bomb OR bomb tried to move onto agent, check if agent can kick
-                    if (((Avatar)p).canKick()) {
-                        // Player can kick, so set bomb velocity
-                        Vector2d velocity = p.getDesiredCoordinate().subtract(p.getPosition());
-                        ((Bomb)b).setVelocity(velocity);
 
-                        // First bomb move on the same tick as the kick happened. Do not move into players or walls.
-                        // If bomb couldn't move, reset its velocity
-                        ArrayList<Types.TILETYPE> collisions = new ArrayList<>();
-                        collisions.add(Types.TILETYPE.RIGID);
-                        collisions.add(Types.TILETYPE.WOOD);
-                        collisions.addAll(Types.TILETYPE.getAgentTypes());
+                if(p.getDesiredCoordinate() != null && p.getPosition() != null){
 
-                        if (velocity.mag() == 0) {
-                            // They can be on same position only if agent just dropped bomb
-                            // Move agent back if they moved & the bomb didn't move when the kick was attempted
+
+                    if (b.getDesiredCoordinate().equals(b.getPosition())) {
+                        ((Bomb) b).setVelocity(new Vector2d());
+                    }
+                    if (p.getDesiredCoordinate().equals(b.getDesiredCoordinate())) {
+                        // Agent tried to move onto bomb OR bomb tried to move onto agent, check if agent can kick
+                        if (((Avatar) p).canKick()) {
+                            // Player can kick, so set bomb velocity
+                            Vector2d velocity = p.getDesiredCoordinate().subtract(p.getPosition());
+                            ((Bomb) b).setVelocity(velocity);
+
+                            // First bomb move on the same tick as the kick happened. Do not move into players or walls.
+                            // If bomb couldn't move, reset its velocity
+                            ArrayList<Types.TILETYPE> collisions = new ArrayList<>();
+                            collisions.add(Types.TILETYPE.RIGID);
+                            collisions.add(Types.TILETYPE.WOOD);
+                            collisions.addAll(Types.TILETYPE.getAgentTypes());
+
+                            if (velocity.mag() == 0) {
+                                // They can be on same position only if agent just dropped bomb
+                                // Move agent back if they moved & the bomb didn't move when the kick was attempted
+                                if (!p.getDesiredCoordinate().equals(p.getPosition())) {
+                                    if (VERBOSE_FM_DEBUG && trueModel) {
+                                        System.out.println("Reverting " + p.getType() + " bomb overlap " + b.getDesiredCoordinate());
+                                    }
+                                    setDesiredCoordinate(p, p.getPosition(), board);
+                                }
+                            } else {
+                                if (!setDesiredCoordinate(b, b.getDesiredCoordinate().add(velocity), board, collisions)) {
+                                    ((Bomb) b).setVelocity(new Vector2d());
+                                }
+                            }
+                        } else {
+                            // Move both back
                             if (!p.getDesiredCoordinate().equals(p.getPosition())) {
                                 if (VERBOSE_FM_DEBUG && trueModel) {
-                                    System.out.println("Reverting " + p.getType() + " bomb overlap " + b.getDesiredCoordinate());
+                                    System.out.println("Reverting " + p.getType() +
+                                            " trying to overlap bomb, bomb revert too: " + p.getDesiredCoordinate() + " <> " +
+                                            b.getDesiredCoordinate());
                                 }
                                 setDesiredCoordinate(p, p.getPosition(), board);
                             }
-                        } else {
-                            if (!setDesiredCoordinate(b, b.getDesiredCoordinate().add(velocity), board, collisions)) {
-                                ((Bomb) b).setVelocity(new Vector2d());
+                            if (!b.getDesiredCoordinate().equals(b.getPosition())) {
+                                setDesiredCoordinate(b, b.getPosition(), board);
                             }
-                        }
-                    } else {
-                        // Move both back
-                        if (!p.getDesiredCoordinate().equals(p.getPosition())) {
-                            if (VERBOSE_FM_DEBUG && trueModel) {
-                                System.out.println("Reverting " + p.getType() +
-                                        " trying to overlap bomb, bomb revert too: " + p.getDesiredCoordinate() + " <> " +
-                                        b.getDesiredCoordinate());
-                            }
-                            setDesiredCoordinate(p, p.getPosition(), board);
-                        }
-                        if (!b.getDesiredCoordinate().equals(b.getPosition())) {
-                            setDesiredCoordinate(b, b.getPosition(), board);
                         }
                     }
+
                 }
             }
         }
@@ -525,7 +627,7 @@ public class ForwardModel {
             Vector2d nextPos = p.getDesiredCoordinate();
             Vector2d currPos = p.getPosition();
 
-            if (flameOccupancy.containsKey(nextPos)) {
+            if (nextPos != null && currPos != null && flameOccupancy.containsKey(nextPos)) {
                 // This agent was killed by a flame, remove from list
                 p.setLife(0);
                 deadAgentsThisTick.add(p);
@@ -576,52 +678,58 @@ public class ForwardModel {
         Vector2d currentPos = o.getPosition();
         Vector2d nextPos = o.getDesiredCoordinate();
 
-        if (!(currentPos.equals(nextPos))) {
-            Types.TILETYPE nextType = board[nextPos.y][nextPos.x];
+        if(currentPos != null && nextPos != null) {
 
-            if (board[nextPos.y][nextPos.x] != Types.TILETYPE.RIGID &&
-                    board[nextPos.y][nextPos.x] != Types.TILETYPE.WOOD) {
-                if (trueModel && VERBOSE_FM_DEBUG) {
-                    System.out.println("Moving " + o.getType() + ": " + currentPos + " -> " + nextPos);
-                }
-                o.setPosition(nextPos.copy());
+            //System.out.println(o.getType());
+            //System.out.println("cp: "+currentPos+" | np: "+nextPos);
 
-                HashSet<Types.TILETYPE> powerUpTypes = Types.TILETYPE.getPowerUpTypes();
-                HashSet<Types.TILETYPE> agentTypes = TILETYPE.getAgentTypes();
+            if (!(currentPos.equals(nextPos))) { // !(currentPos.equals(nextPos))  //(currentPos != null && !(currentPos.equals(nextPos)))
+                Types.TILETYPE nextType = board[nextPos.y][nextPos.x];
 
-                // Set up sprites that cannot be replaced with a passage when current sprite moves from its square.
-                HashSet<Types.TILETYPE> illegalOverwriteTypes = new HashSet<>(powerUpTypes);
-                illegalOverwriteTypes.add(Types.TILETYPE.FLAMES);  // We don't remove flames
-                illegalOverwriteTypes.addAll(agentTypes);  // We don't remove other agents...
-                illegalOverwriteTypes.remove(o.getType()); // Unless this agent is the current object
-
-                // Bombs don't leave traces of bombs behind them, and other sprites do not remove bombs from the board
-                if (o.getType() != Types.TILETYPE.BOMB) {
-                    illegalOverwriteTypes.add(Types.TILETYPE.BOMB);
-                } else {
-                    // Check if next is a powerup, we should put it back in the powerup array before removing it from
-                    // the board (unless it's an avatar collecting it).
-                    if (!agentTypes.contains(o.getType()) && powerUpTypes.contains(nextType)) {
-                        powerups[nextPos.y][nextPos.x] = board[nextPos.y][nextPos.x];
+                if (board[nextPos.y][nextPos.x] != Types.TILETYPE.RIGID &&
+                        board[nextPos.y][nextPos.x] != Types.TILETYPE.WOOD) {
+                    if (trueModel && VERBOSE_FM_DEBUG) {
+                        System.out.println("Moving " + o.getType() + ": " + currentPos + " -> " + nextPos);
                     }
-                }
+                    o.setPosition(nextPos.copy());
 
-                // Update current position
-                // Only update current position if the object there can be overwritten
-                // Replace with passage if there isn't a power-up there that should be added back in
-                if (canOverwrite(currentPos, board, illegalOverwriteTypes)) {
-                    if (powerups[currentPos.y][currentPos.x] != null) {
-                        board[currentPos.y][currentPos.x] = powerups[currentPos.y][currentPos.x];
-                        powerups[currentPos.y][currentPos.x] = null;
+                    HashSet<Types.TILETYPE> powerUpTypes = Types.TILETYPE.getPowerUpTypes();
+                    HashSet<Types.TILETYPE> agentTypes = TILETYPE.getAgentTypes();
+
+                    // Set up sprites that cannot be replaced with a passage when current sprite moves from its square.
+                    HashSet<Types.TILETYPE> illegalOverwriteTypes = new HashSet<>(powerUpTypes);
+                    illegalOverwriteTypes.add(Types.TILETYPE.FLAMES);  // We don't remove flames
+                    illegalOverwriteTypes.addAll(agentTypes);  // We don't remove other agents...
+                    illegalOverwriteTypes.remove(o.getType()); // Unless this agent is the current object
+
+                    // Bombs don't leave traces of bombs behind them, and other sprites do not remove bombs from the board
+                    if (o.getType() != Types.TILETYPE.BOMB) {
+                        illegalOverwriteTypes.add(Types.TILETYPE.BOMB);
                     } else {
-                        board[currentPos.y][currentPos.x] = Types.TILETYPE.PASSAGE;
+                        // Check if next is a powerup, we should put it back in the powerup array before removing it from
+                        // the board (unless it's an avatar collecting it).
+                        if (!agentTypes.contains(o.getType()) && powerUpTypes.contains(nextType)) {
+                            powerups[nextPos.y][nextPos.x] = board[nextPos.y][nextPos.x];
+                        }
+                    }
+
+                    // Update current position
+                    // Only update current position if the object there can be overwritten
+                    // Replace with passage if there isn't a power-up there that should be added back in
+                    if (canOverwrite(currentPos, board, illegalOverwriteTypes)) {
+                        if (powerups[currentPos.y][currentPos.x] != null) {
+                            board[currentPos.y][currentPos.x] = powerups[currentPos.y][currentPos.x];
+                            powerups[currentPos.y][currentPos.x] = null;
+                        } else {
+                            board[currentPos.y][currentPos.x] = Types.TILETYPE.PASSAGE;
+                        }
                     }
                 }
             }
-        }
 
-        // Update next position. The order is bombs, avatars, so avatars would overwrite bombs.
-        board[nextPos.y][nextPos.x] = o.getType();
+            // Update next position. The order is bombs, avatars, so avatars would overwrite bombs.
+            board[nextPos.y][nextPos.x] = o.getType();
+        }
     }
 
     /**
@@ -636,7 +744,7 @@ public class ForwardModel {
                 continue;
             }
             if (agent.getPosition() == null){
-                System.out.println("Agent has no position");
+                //System.out.println("Agent has no position");
                 continue;
             }
 
@@ -981,21 +1089,26 @@ public class ForwardModel {
         copy.flames = new ArrayList<>();
         copy.bombs = new ArrayList<>();
 
-        // Agents and aliveAgents do not get reduced. But their position is removed if we don't know where they are.
+        // Agents position is removed and their properties reset if we don't know where they are when reducing state.
         copy.agents = deepCopy(agents);
-        for (GameObject a: copy.agents) {
-            if (range != -1 && a.getPosition() != null && a.getPosition().custom_dist(avatarPosition) > range) {
-                // This agent's position is not observed
-                a.setPosition(null);
-                a.setDesiredCoordinate(null);
+        if (range != -1) {
+            for (int i = 0; i < copy.agents.length; i++) {
+                GameObject a = copy.agents[i];
+                if (a.getPosition() != null && a.getPosition().custom_dist(avatarPosition) > range) {
+                    // This agent's position is not observed
+                    a.setPositionNull();
+                    a.setDesiredCoordinateNull();
+                }
+                // If not player observing, reset properties to default
+                if (i != playerIdx) {
+                    ((Avatar) a).reset();
+                }
             }
-            // If not player observing, reset properties to default
-            ((Avatar)a).reset();
         }
 
         // Reduce power-ups and board arrays
-        for (int x = 0; x < size; x++) {
-            for (int y = 0; y < size; y++) {
+        for (int y = 0; y < size; y++) {
+            for (int x = 0; x < size; x++) {
                 if (range == -1 || avatarPosition != null && avatarPosition.custom_dist(x, y) <= range) {
                     copy.board[y][x] = board[y][x];
                     if (range == -1)

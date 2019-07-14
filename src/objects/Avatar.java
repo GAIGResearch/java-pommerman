@@ -62,13 +62,21 @@ public class Avatar extends GameObject {
         copy.ammo = ammo;
         copy.blastStrength = blastStrength;
         copy.life = life;
-        copy.desiredCoordinate = desiredCoordinate.copy();
         copy.id = hashCode();
         copy.winner = winner;
         copy.visionRange = visionRange;
+
+        if (desiredCoordinate != null) {
+            copy.desiredCoordinate = desiredCoordinate.copy();
+        }
+        else
+            copy.desiredCoordinate = null;
+
         if (position != null) {
             copy.position = position.copy();
         }
+        else
+            copy.position = null;
 
         copy.team = team;
         copy.enemies = enemies.clone();
@@ -127,6 +135,10 @@ public class Avatar extends GameObject {
 
     public int getVisionRange() {
         return visionRange;
+    }
+
+    public void setVisionRange(int visionRange) {
+        this.visionRange = visionRange;
     }
 
     public int getTeam() {

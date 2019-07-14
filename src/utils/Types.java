@@ -18,6 +18,11 @@ public class Types {
     public static boolean DEFAULT_BOMB_KICK = false;//Can agents kick bomb by default?
     public static int DEFAULT_VISION_RANGE = -1;    //-1 for full observability, >1 for PO.
 
+    public static boolean COLLAPSE_BOARD = true;
+    public static int COLLAPSE_START = 500;
+    public static int COLLAPSE_STAGES = 4;
+    public static int COLLAPSE_STEP = ((Types.MAX_GAME_TICKS - COLLAPSE_START) / COLLAPSE_STAGES);
+
     //Game configuration to use in the game, which determines victory conditions.
     private static IGameConfig gameConfig = new OriginalGameConfig();
 
@@ -42,10 +47,14 @@ public class Types {
     public static boolean VERBOSE = false;
     public static boolean VERBOSE_FM_DEBUG = false;
     public static boolean VISUALS = true;
-    public static boolean LOGGING_STATISTICS = false;
+    public static boolean LOGGING_STATISTICS = true;
 
     public final static int NUM_PLAYERS = 4;  //Changing this is NOT going to work (Forward Model assumes 4 players).
     public static int NUM_ACTIONS = 6;        //Changing this is NOT going to work either.
+
+    // Communication
+    public static int MESSAGE_LENGTH = 5;
+    public static int MESSAGE_HISTORY = 5; // only keep previous 5 messages
 
     public static IGameConfig getGameConfig() {return gameConfig;}
 

@@ -6,3 +6,5 @@
 *.iml
 
 res/gamelogs/json/
+
+res/gamelogs/

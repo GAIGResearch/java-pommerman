@@ -25,7 +25,7 @@ public class Run {
         System.out.println("\t\t 2 OSLA");
         System.out.println("\t\t 3 SimplePlayer");
         System.out.println("\t\t 4 RHEA 200 itereations, shift buffer, pop size 1, random init, length: 12, custom heuristic");
-        System.out.println("\t\t 5 RHEA 200 itereations, shift buffer, pop size 1, random init, length: 12, advanced heuristic");
+        System.out.println("\t\t 5 Simple Evo Agent, shift buffer, pop size 1, random init, length: 12, custom heuristic");
         System.out.println("\t\t 6 MCTS 200 iterations, length: 12, custom heuristic");
         System.out.println("\t\t 7 MCTS 200 iterations, length: 12, custom heuristic");
     }
@@ -102,9 +102,16 @@ public class Run {
                         playerStr[i-3] = "RHEA-Custom";
                         break;
                     case 5:
-                        rheaParams.heurisic_type = Constants.CUSTOM_HEURISTIC;//Constants.ADVANCED_HEURISTIC;
-                        p = new RHEAPlayer(seed, playerID++, rheaParams);
-                        playerStr[i-3] = "RHEA-Advanced";
+//                        rheaParams.heurisic_type = Constants.CUSTOM_HEURISTIC;//Constants.ADVANCED_HEURISTIC;
+//                        p = new RHEAPlayer(seed, playerID++, rheaParams);
+//                        playerStr[i-3] = "RHEA-Advanced";
+
+                        p = new SimpleEvoAgent(seed, playerID++);
+                        ((SimpleEvoAgent)p).nEvals = 200;
+                        ((SimpleEvoAgent)p).sequenceLength = 12;
+
+                        playerStr[i-3] = "SimpleEvoAgent";
+
                         break;
                     case 6:
                         mctsParams.heuristic_method = mctsParams.CUSTOM_HEURISTIC;
@@ -175,7 +182,6 @@ public class Run {
 
         g.run(frame, wi, separateThreads);
     }
-
 
     public static void runGames(Game g, long seeds[], int repetitions, boolean useSeparateThreads){
         int numPlayers = g.getPlayers().size();

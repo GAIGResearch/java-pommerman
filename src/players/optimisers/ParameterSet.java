@@ -1,6 +1,6 @@
 package players.optimisers;
 
-import javafx.util.Pair;
+import utils.Pair;
 
 import java.text.DecimalFormat;
 import java.util.*;
@@ -16,12 +16,12 @@ public interface ParameterSet {
     Map<Object, ArrayList<String>> getParameterChildren(String root);
     Map<String, String[]> constantNames();
 
-    default void translate(int[] values) {
+    default void translate(int[] values, boolean topLevel) {
         ArrayList<String> paramList = getParameters();
         Map<String, Object[]> params = getParameterValues();
         int k = 0;
         for (String param : paramList) {
-            if (getParameterParent(param) == null) {   // Sets only top-level params
+            if (!topLevel || getParameterParent(param) == null) {   // Sets only top-level params if topLevel=false
                 Object value = params.get(param)[values[k]];
                 setParameterValue(param, value);
                 k++;

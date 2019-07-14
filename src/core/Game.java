@@ -4,10 +4,7 @@ import objects.Avatar;
 import objects.GameObject;
 import players.Player;
 import players.SimonSaysPlayer;
-import utils.GUI;
-import utils.GameLog;
-import utils.Types;
-import utils.WindowInput;
+import utils.*;
 
 import java.util.*;
 
@@ -42,10 +39,10 @@ public class Game {
     private String gameIdStr;
 
     // Log flags
-    public static boolean LOG_GAME = false;
+    public static boolean LOG_GAME = true;
     public static boolean LOG_GAME_JSON = true; // If the game is being logged, should it be saved to json
 
-    // Variables for multi-threaded run
+    // Variables for multi-threaded run 
     private Actor[] actors = new Actor[NUM_PLAYERS];
     private Thread[] threads = new Thread[NUM_PLAYERS];
 
@@ -290,6 +287,7 @@ public class Game {
 
         // Advance the game state
         gs.next(actions);
+        updateMessages();
         updateAssignedGameStates();
 
         if (VERBOSE) {
@@ -389,6 +387,21 @@ public class Game {
     boolean isEnded() {
         //Delegate to our game config
         return getGameConfig().isEnded(gs.getTick(), gameMode, gs.getAliveAgents());
+    }
+
+    /**
+     * handle messages for update, swap teammate's messages
+     */
+    protected void updateMessages() {
+        if (gameMode.equals(GAME_MODE.TEAM_RADIO)){
+            for (int i = 0; i < NUM_PLAYERS; i++) {
+                int teammateIdx = getGameConfig().getTeammates(GAME_MODE.TEAM_RADIO, i + TILETYPE.AGENT0.getKey())[0].getKey() - TILETYPE.AGENT0.getKey();
+                if (gameStateObservations[teammateIdx].winner() == RESULT.INCOMPLETE)
+                    gs.setMessage(i, players.get(teammateIdx).getMessage());
+                else
+                    gs.setMessage(i, new int[MESSAGE_LENGTH]); // default case
+            }
+        }
     }
 
     /**

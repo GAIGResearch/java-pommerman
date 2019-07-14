@@ -6,11 +6,12 @@ import objects.GameObject;
 import utils.Types;
 import utils.Vector2d;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static utils.Types.NUM_ACTIONS;
+import static utils.Types.*;
 
 @SuppressWarnings("unused")
 public class GameState {
@@ -20,6 +21,9 @@ public class GameState {
 
     // Forward model for the game.
     ForwardModel model;
+
+    // Message
+    private int[][] message;
 
     // Seed for the game state.
     private long seed;
@@ -54,6 +58,9 @@ public class GameState {
         if (newFM) {
             model = new ForwardModel(size, gameMode);
         }
+        if (gameMode.equals(Types.GAME_MODE.TEAM_RADIO)){
+            this.message = new int[NUM_PLAYERS][MESSAGE_LENGTH];
+        }
     }
 
     /**
@@ -67,6 +74,9 @@ public class GameState {
         this.size = size;
         this.gameMode = gameMode;
         model = new ForwardModel(seed,size,gameMode);
+        if (gameMode.equals(Types.GAME_MODE.TEAM_RADIO)){
+            this.message = new int[NUM_PLAYERS][MESSAGE_LENGTH];
+        }
     }
 
     /**
@@ -79,6 +89,9 @@ public class GameState {
     protected GameState(long seed, ForwardModel model, Types.GAME_MODE gameMode) {
         this(seed, model.getBoard().length, gameMode, false);
         this.model = model;
+        if (gameMode.equals(Types.GAME_MODE.TEAM_RADIO)){
+            this.message = new int[NUM_PLAYERS][MESSAGE_LENGTH];
+        }
     }
 
     /**
@@ -124,29 +137,6 @@ public class GameState {
         System.out.println("Results at time : " + tick + ": " + Arrays.toString(results));
     }
 
-    /* ----- Agents have access to all following publicly available methods ----- */
-
-    /**
-     * Advances the game state applying all actions received and increments the tick counter.
-     * @param actions actions to be executed in the current game state.
-     * @return true if the game could be advanced. False if it couldn't because ticks reached the game ticks limit.
-     */
-    public boolean next(Types.ACTIONS[] actions) {
-
-        if (tick < Types.MAX_GAME_TICKS)
-        {
-            model.next(actions);
-            tick++;
-
-            if (tick == Types.MAX_GAME_TICKS)
-                Types.getGameConfig().processTimeout(gameMode, getAgents(), getAliveAgents());
-
-            return true;
-        }
-
-        return false;
-    }
-
     /**
      * Creates a deep copy of this game state, given player index. Sets up the game state so that it contains
      * only information available to the given player. If -1, state contains all information.
@@ -154,7 +144,7 @@ public class GameState {
      * player Idx is retained, while the model is not further reduced.
      * @return a copy of this state
      */
-    protected GameState copy(int playerIdx) {
+    GameState copy(int playerIdx) {
         // Determine this copy's player idx. If either received playerIdx or this.playerIdx is >= 0, keep that one.
         // Otherwise, keep original playerIdx
         int copyIdx = this.playerIdx;
@@ -170,12 +160,45 @@ public class GameState {
         copy.playerIdx = copyIdx;
         if (copyIdx >= 0) {
             copy.avatar = (Avatar) copy.model.getAgents()[copyIdx];
+            if (gameMode.equals(GAME_MODE.FFA) && message != null)
+                copy.message = message.clone();
         } else {
             copy.avatar = null;
         }
         return copy;
     }
 
+    /**
+     * @return the random seed of this state
+     */
+    long getSeed() {
+        return seed;
+    }
+
+    /* ----- Agents have access to all following publicly available methods ----- */
+
+    /**
+     * Advances the game state applying all actions received and increments the tick counter.
+     * @param actions actions to be executed in the current game state.
+     * @return true if the game could be advanced. False if it couldn't because ticks reached the game ticks limit.
+     */
+    public boolean next(Types.ACTIONS[] actions) {
+
+        if (tick < Types.MAX_GAME_TICKS)
+        {
+            model.next(actions, tick);
+            tick++;
+            if (tick == Types.MAX_GAME_TICKS)
+                Types.getGameConfig().processTimeout(gameMode, getAgents(), getAliveAgents());
+
+            return true;
+        }
+
+        return false;
+    }
+    /**
+     * @return a copy of the current game state.
+     */
     public GameState copy() {
         return copy(-1);  // No reduction happening if no index specified
     }
@@ -302,13 +325,6 @@ public class GameState {
      */
     public int getTick() { return tick; }
 
-    /**
-     * @return the random seed of this state
-     */
-    public long getSeed() {
-        return seed;
-    }
-
 
     /* ----- Methods to insert or remove observations into the game model ----- */
 
@@ -352,9 +368,21 @@ public class GameState {
         model.setFlame(x, y, life);
     }
 
+    public int[] getMessage(){
+        return getMessage(playerIdx);
+    }
+
+    public int[] getMessage(int playerIdx){
+        return message[playerIdx];
+    }
+
+    void setMessage(int playerIdx, int[] msg){
+        message[playerIdx] = msg.clone();
+    }
+
     /* ----- Other methods ----- */
 
-        @Override
+    @Override
     public String toString() {
         return model.toString();
     }
@@ -429,8 +457,20 @@ public class GameState {
         int step_count = gson.fromJson(obsObj.get("step_count"), int.class); // step_count
         int action_space = object.get("action_space").getAsInt();
 
-        // todo get it from game_type
-        Types.GAME_MODE gameMode = Types.GAME_MODE.FFA;
+        Types.GAME_MODE gameMode = Types.GAME_MODE.FFA; // Default
+        if (game_type == 1) {
+            gameMode = Types.GAME_MODE.FFA;
+            DEFAULT_VISION_RANGE = 4; // TODO THIS IS HARDCODED BY US
+        }
+        else if (game_type == 2){
+            gameMode = Types.GAME_MODE.TEAM;
+            DEFAULT_VISION_RANGE = 4; // TODO THIS IS HARDCODED BY US
+        }
+        else if (game_type == 3){
+            gameMode = Types.GAME_MODE.TEAM_RADIO;
+        }
+
+        this.gameMode = gameMode;
 
         this.tick = step_count;
         this.seed = -1; // todo setting seed to -1 when communicating with python
@@ -439,8 +479,11 @@ public class GameState {
         this.size = board.length;
 
         try {
-            this.model = new ForwardModel(board, bomb_blast_strength, bomb_life, alive, gameMode);
+            this.model = new ForwardModel(board, bomb_blast_strength, bomb_life, alive, gameMode, this.playerIdx);
             this.avatar = (Avatar) model.getAgents()[playerIdx];
+            this.avatar.setAmmo(ammo);
+            this.avatar.setBlastStrength(blast_strength);
+            this.avatar.setVisionRange(DEFAULT_VISION_RANGE);
             if (can_kick) this.avatar.canKick();
         } catch (Exception e){
             e.printStackTrace();

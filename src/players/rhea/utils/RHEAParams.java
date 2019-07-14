@@ -1,7 +1,7 @@
 package players.rhea.utils;
 
-import javafx.util.Pair;
 import players.optimisers.ParameterSet;
+import utils.Pair;
 
 import java.util.*;
 
@@ -81,8 +81,8 @@ public class RHEAParams implements ParameterSet {
         parameterValues.put("frame_skip_type", new Integer[]{SKIP_REPEAT, SKIP_NULL, SKIP_RANDOM, SKIP_SEQUENCE});
 
         parameterValues.put("population_size", new Integer[]{1, 2, 5, 10, 15, 20});
-        parameterValues.put("individual_length", new Integer[]{5, 10, 15, 20});
-        parameterValues.put("mcts_depth", new Integer[]{5, 10, 15, 20});
+        parameterValues.put("individual_length", new Integer[]{5, 10, 12, 15, 20});
+        parameterValues.put("mcts_depth", new Integer[]{5, 10, 12, 15, 20});
         parameterValues.put("gene_size", new Integer[]{1, 2, 3, 4, 5});
         parameterValues.put("offspring_count", new Integer[]{1, 2, 5, 10, 15, 20});
         parameterValues.put("no_elites", new Integer[]{1, 2, 3});
@@ -117,7 +117,7 @@ public class RHEAParams implements ParameterSet {
      */
     public Map<Object,ArrayList<String>> getParameterChildren(String parameter) {
         Map<Object,ArrayList<String>> values = new HashMap<>();
-        ArrayList<String> children = new ArrayList<>();
+        ArrayList<String> children;
 
         switch(parameter) {
 //            case "budget_type":
@@ -131,59 +131,60 @@ public class RHEAParams implements ParameterSet {
 //                values.put(true, children);
 //                break;
             case "mc_rollouts":
-                children.clear();
+                children = new ArrayList<>();
                 children.add("mc_rollouts_length_perc");
                 children.add("mc_rollouts_repeat");
                 values.put(true, children);
                 break;
             case "evaluate_act":
-                children.clear();
+                children = new ArrayList<>();
                 children.add("evaluate_discount");
                 values.put(EVALUATE_ACT_DISCOUNT, children);
                 break;
             case "frame_skip":
-                children.clear();
+                children = new ArrayList<>();
                 children.add("frame_skip_type");
                 values.put(5, children);
                 values.put(10, children);
                 break;
             case "elitism":
-                children.clear();
+                children = new ArrayList<>();
                 children.add("no_elites");
                 values.put(true, children);
                 break;
             case "init_type":
-                children.clear();
+                children = new ArrayList<>();
                 children.add("mcts_budget_perc");
                 children.add("mcts_depth");
                 values.put(INIT_MCTS, children);
                 break;
             case "genetic_operator":
-                children.clear();
+                children = new ArrayList<>();
                 children.add("mutation_type");
-                children.add("mutation_gene_count");
-                children.add("mutation_rate");
                 values.put(MUTATION_ONLY, children);
 
+                children = new ArrayList<>();
                 children.add("selection_type");
                 children.add("crossover_type");
+                children.add("mutation_type");
                 values.put(MUTATION_AND_CROSSOVER, children);
 
-                children.clear();
+                children = new ArrayList<>();
                 children.add("selection_type");
                 children.add("crossover_type");
                 values.put(CROSSOVER_ONLY, children);
                 break;
             case "selection_type":
-                children.clear();
+                children = new ArrayList<>();
                 children.add("tournament_size_perc");
                 values.put(SELECT_TOURNAMENT, children);
                 break;
             case "mutation_type":
-                children.clear();
+                children = new ArrayList<>();
                 children.add("mutation_gene_count");
                 values.put(MUTATION_BIT, children);
-                children.clear();
+
+                children = new ArrayList<>();
                 children.add("mutation_rate");
                 values.put(MUTATION_UNIFORM, children);
         }

@@ -30,7 +30,7 @@ public class GameInterface {
     private int playerID;
     private Random random;
 
-    ElapsedCpuTimer elapsedTimer;
+    private ElapsedCpuTimer elapsedTimer;
     private HashMap<Integer, Types.ACTIONS> action_mapping;
 
     private static double[] bounds = new double[]{-1, 1};
@@ -153,7 +153,11 @@ public class GameInterface {
     public double evaluate(Individual individual, Mutation mutation, int evaluation_update) {
         double[] values = new double[individual.get_length() + 1];
         GameState stateObsCopy = rootState.copy();
-        values[0] = evaluateState(stateObsCopy);  // Evaluate current state
+        if (params.evaluate_act == EVALUATE_ACT_LAST) {  // This doesn't need first state value
+            values[0] = 0;
+        } else {
+            values[0] = evaluateState(stateObsCopy);  // Evaluate current state
+        }
 
         // Evaluate subsequent states obtained by rolling through the actions
         int lastIdx = evaluateRollout(values, stateObsCopy, individual.get_length(), individual, mutation);
@@ -236,11 +240,20 @@ public class GameInterface {
                 fmBudget.use();
 
                 // Save the value of this state in the values array and update lastIdx reached.
-                values[i + 1] = evaluateState(copy);
+                if ((params.evaluate_act == EVALUATE_ACT_DELTA || params.evaluate_act == EVALUATE_ACT_LAST)
+                        && (i != length - 1)) {  // This only needs last state evaluated, speed up execution
+                    values[i + 1] = 0;
+                } else {  // In all other cases we need all intermediate state values.
+                    values[i + 1] = evaluateState(copy);
+                }
                 lastIdx = i;
             } else {
                 break;
             }
+        }
+        if (lastIdx < length - 1) {
+            // Broke out of the loop early, end of game
+            values[lastIdx + 1] = evaluateState(copy);
         }
         lastIdx++;
 
@@ -299,7 +312,9 @@ public class GameInterface {
 
             // Save values of states we pass through in values array
             double[] values = new double[params.mc_rollouts_length + 1];
-            values[0] = evaluateState(first);
+            if (params.evaluate_act != EVALUATE_ACT_LAST) {  // This doesn't need first state value
+                values[0] = evaluateState(first);  // Evaluate current state
+            }
 
             // Passing null as individual and mutation to perform random rollout
             int lastIdx = evaluateRollout(values, first, params.mc_rollouts_length, null, null);
@@ -428,6 +443,7 @@ public class GameInterface {
      * @param nActions - number of available actions.
      * @return - random action.
      */
+    @SuppressWarnings("unused")
     private Types.ACTIONS _random_model(int nActions) {
         int actionIdx = random.nextInt(nActions);
         return Types.ACTIONS.all().get(actionIdx);
@@ -437,6 +453,7 @@ public class GameInterface {
      * Do nothing opponent model.
      * @return - ACTION_STOP always.
      */
+    @SuppressWarnings("unused")
     private Types.ACTIONS _stop_model() {
         return Types.ACTIONS.ACTION_STOP;
     }

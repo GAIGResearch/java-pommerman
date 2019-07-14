@@ -125,8 +125,9 @@ public class SimplePlayer extends Player {
             if(!directions.isEmpty()) {
                 return directionToAction(directions.get(random.nextInt(directions.size())));
             }
-            else
+            else {
                 return Types.ACTIONS.ACTION_STOP;
+            }
         }
 
         // 3) Lay bomb if we are adjacent to an enemy.
@@ -248,6 +249,12 @@ public class SimplePlayer extends Player {
         return Types.ACTIONS.ACTION_STOP;
     }
 
+    @Override
+    public int[] getMessage() {
+        // default message
+        return new int[Types.MESSAGE_LENGTH];
+    }
+
     /**
      * Dijkstra's pathfinding
      * @param board - game board
@@ -316,7 +323,9 @@ public class SimplePlayer extends Player {
             if(positionIsPassable(board, position, enemies)){
                 int val = dist.get(position) + 1;
 
-                Types.DIRECTIONS[] directionsToBeChecked = Types.DIRECTIONS.values();
+                //Types.DIRECTIONS[] directionsToBeChecked = Types.DIRECTIONS.values();
+                Types.DIRECTIONS[] directionsToBeChecked = {Types.DIRECTIONS.LEFT, Types.DIRECTIONS.RIGHT,
+                        Types.DIRECTIONS.UP, Types.DIRECTIONS.DOWN};
 
                 for (Types.DIRECTIONS directionToBeChecked : directionsToBeChecked) {
 
@@ -372,8 +381,11 @@ public class SimplePlayer extends Player {
             if(distance > bombBlastStrength)
                 continue;
 
-            if(myPosition == position){ // We are on a bomb. All directions are in range of bomb.
-                Types.DIRECTIONS[] directions = Types.DIRECTIONS.values();
+            // We are on a bomb. All directions are in range of bomb.
+            if(myPosition.x == position.x && myPosition.y == position.y){
+
+                Types.DIRECTIONS[] directions = {Types.DIRECTIONS.LEFT, Types.DIRECTIONS.RIGHT,
+                        Types.DIRECTIONS.UP, Types.DIRECTIONS.DOWN};
 
                 for (Types.DIRECTIONS direction : directions) {
                     ret.put(direction, max(ret.getOrDefault(direction, 0), bombBlastStrength));
@@ -449,7 +461,9 @@ public class SimplePlayer extends Player {
                 break;
             }
 
-            Types.DIRECTIONS[] directions = Types.DIRECTIONS.values();
+            Types.DIRECTIONS[] directions = {Types.DIRECTIONS.LEFT, Types.DIRECTIONS.RIGHT,
+                    Types.DIRECTIONS.UP, Types.DIRECTIONS.DOWN};
+            //Types.DIRECTIONS.values();
 
             for (Types.DIRECTIONS direction : directions) {
                 Vector2d newPosition = position.copy();
@@ -522,7 +536,10 @@ public class SimplePlayer extends Player {
         // The directions that will go off the board.
         Set<Types.DIRECTIONS> disallowed = new HashSet<>();
 
-        Types.DIRECTIONS[] directions = Types.DIRECTIONS.values();
+        Types.DIRECTIONS[] directions = {Types.DIRECTIONS.LEFT, Types.DIRECTIONS.RIGHT,
+                Types.DIRECTIONS.UP, Types.DIRECTIONS.DOWN};
+
+        //Types.DIRECTIONS.values();
 
         for (Types.DIRECTIONS current_direction : directions) {
 
@@ -536,7 +553,9 @@ public class SimplePlayer extends Player {
                 continue;
             }
 
-            if(unsafeDirections.containsKey(direction)) continue;
+            if(unsafeDirections.containsKey(direction)) {
+                continue;
+            }
 
             if(positionIsPassable(board, position, enemies) || positionIsFog(board, position)){
                 safe.add(direction);

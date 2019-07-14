@@ -24,24 +24,25 @@ import java.util.List;
     // todo there is something strange that happens when NTuples are created
     // something like making the StatSummary objects seems really slow
 
+@SuppressWarnings({"FieldCanBeLocal", "UnusedReturnValue", "unused"})
 public class NTupleSystem implements BanditLandscapeModel {
 
-    static int minTupleSize = 1;
-    static double defaultEpsilon = 0.5;
+    private static int minTupleSize = 1;
+    private static double defaultEpsilon = 0.5;
 
-    double epsilon = defaultEpsilon;
+    private double epsilon = defaultEpsilon;
 
-    List<int[]> sampledPoints;
+    private List<int[]> sampledPoints;
 
     public SearchSpace searchSpace;
-    public ArrayList<NTuple> tuples;
+    ArrayList<NTuple> tuples;
 
-    public boolean use1Tuple = true;
-    public boolean use2Tuple = true;
-    public boolean use3Tuple = false;
-    public boolean useNTuple = true;
+    boolean use1Tuple = true;
+    boolean use2Tuple = true;
+    boolean use3Tuple = false;
+    boolean useNTuple = true;
 
-    public NTupleSystem() {
+    NTupleSystem() {
         // this.searchSpace = searchSpace;
         tuples = new ArrayList<>();
         sampledPoints = new ArrayList<>();
@@ -55,7 +56,7 @@ public class NTupleSystem implements BanditLandscapeModel {
         return this;
     }
 
-    public NTupleSystem addTuples() {
+    private NTupleSystem addTuples() {
         // this should only be called AFTER setting up the search space
         tuples = new ArrayList<>();
         if (use1Tuple) add1Tuples();
@@ -72,7 +73,7 @@ public class NTupleSystem implements BanditLandscapeModel {
 
     @Override
     public BanditLandscapeModel reset() {
-        System.out.println("Resetting model");
+//        System.out.println("Resetting model");
         sampledPoints = new ArrayList<>();
         for (NTuple nTuple : tuples) {
             nTuple.reset();
@@ -109,7 +110,7 @@ public class NTupleSystem implements BanditLandscapeModel {
     // careful - this can be slow - it iterates over all points in the search space!
     @Override
     public int[] getBestSolution() {
-        Picker<int[]> picker = new Picker<int[]>(Picker.MAX_FIRST);
+        Picker<int[]> picker = new Picker<>(Picker.MAX_FIRST);
         for (int i = 0; i < SearchSpaceUtil.size(searchSpace); i++) {
             int[] p = SearchSpaceUtil.nthPoint(searchSpace, i);
             picker.add(getMeanEstimate(p), p);
@@ -120,7 +121,7 @@ public class NTupleSystem implements BanditLandscapeModel {
 
     @Override
     public int[] getBestOfSampled() {
-        Picker<int[]> picker = new Picker<int[]>(Picker.MAX_FIRST);
+        Picker<int[]> picker = new Picker<>(Picker.MAX_FIRST);
         for (int[] p : sampledPoints) {
             picker.add(getMeanEstimate(p), p);
         }
@@ -176,7 +177,7 @@ public class NTupleSystem implements BanditLandscapeModel {
         return tot / vec.length;
     }
 
-    public double[] getExplorationVector(int[] x) {
+    private double[] getExplorationVector(int[] x) {
         // idea is simple: we just provide a summary over all
         // the samples, comparing each to the maximum in that N-Tuple
 
@@ -198,7 +199,7 @@ public class NTupleSystem implements BanditLandscapeModel {
 
     // note that there is a smarter way to add different n-tuples, but this way is easiest
 
-    public NTupleSystem add1Tuples() {
+    private NTupleSystem add1Tuples() {
         for (int i = 0; i < searchSpace.nDims(); i++) {
             int[] a = new int[]{i};
             tuples.add(new NTuple(searchSpace, a));
@@ -206,7 +207,7 @@ public class NTupleSystem implements BanditLandscapeModel {
         return this;
     }
 
-    public NTupleSystem add2Tuples() {
+    private NTupleSystem add2Tuples() {
         for (int i = 0; i < searchSpace.nDims() - 1; i++) {
             for (int j = i + 1; j < searchSpace.nDims(); j++) {
                 int[] a = new int[]{i, j};
@@ -216,7 +217,7 @@ public class NTupleSystem implements BanditLandscapeModel {
         return this;
     }
 
-    public NTupleSystem add3Tuples() {
+    private NTupleSystem add3Tuples() {
         for (int i = 0; i < searchSpace.nDims() - 2; i++) {
             for (int j = i + 1; j < searchSpace.nDims() - 1; j++) {
                 for (int k = j + 1; k < searchSpace.nDims(); k++) {
@@ -228,7 +229,7 @@ public class NTupleSystem implements BanditLandscapeModel {
         return this;
     }
 
-    public NTupleSystem addNTuple() {
+    private NTupleSystem addNTuple() {
         // adds the entire one
         int[] a = new int[searchSpace.nDims()];
         for (int i = 0; i < a.length; i++) {

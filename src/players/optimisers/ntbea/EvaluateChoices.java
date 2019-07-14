@@ -14,14 +14,25 @@ import java.util.Set;
  */
 public class EvaluateChoices {
 
-    static Random random = new Random();
-    static double tieBreakNoiseLevel = 1e-6;
+    private static Random random = new Random();
+    private static double tieBreakNoiseLevel = 1e-6;
 
-    BanditLandscapeModel banditLandscapeModel;
-    double kExplore;
-    StatSummary exploreStats, exploitStats, combined;
+    private BanditLandscapeModel banditLandscapeModel;
+    private double kExplore;
+    private StatSummary exploreStats, exploitStats, combined;
 
-    public EvaluateChoices(BanditLandscapeModel banditLandscapeModel, double kExplore) {
+    Picker<int[]> picker = new Picker<>(Picker.MAX_FIRST);
+    private Set<Integer> indices = new HashSet<>();
+
+    private int nAttempts = 0;
+    private int nNeighbours = 0;
+
+    // checking for uniqueness of neighbours can be expensive
+    // so only do it if necessary (useful for small search spaces)
+    // otherwise set to false
+    private boolean checkUnique = false;
+
+    EvaluateChoices(BanditLandscapeModel banditLandscapeModel, double kExplore) {
         this.banditLandscapeModel = banditLandscapeModel;
         this.kExplore = kExplore;
         exploitStats = new StatSummary("Exploit");
@@ -29,21 +40,10 @@ public class EvaluateChoices {
         combined = new StatSummary("Combined");
     }
 
-    public Picker<int[]> picker = new Picker<int[]>(Picker.MAX_FIRST);
-    public Set<Integer> indices = new HashSet<>();
-
-    int nAttempts = 0;
-    int nNeighbours = 0;
-
     public EvaluateChoices setKExplore(double kExplore) {
         this.kExplore = kExplore;
         return this;
     }
-
-    // checking for uniqueness of neighbours can be expensive
-    // so only do it if necessary (useful for small search spaces)
-    // otherwise set to false
-    boolean checkUnique = false;
 
     // careful: the exploration term is used here
     public void add(int[] p) {

@@ -27,15 +27,9 @@ public class MCTSPlayer extends ParameterizedPlayer {
     public MCTSParams params;
 
     public MCTSPlayer(long seed, int id) {
-        this(seed, id, null);
+        this(seed, id, new MCTSParams());
     }
 
-    /**
-     * Constructors that receive parameters
-     * @param seed seed for the algorithm to use in the random generator
-     * @param id ID of this player in the game.
-     * @param params Parameters for MCTS.
-     */
     public MCTSPlayer(long seed, int id, MCTSParams params) {
         super(seed, id, params);
         reset(seed, id);
@@ -48,11 +42,6 @@ public class MCTSPlayer extends ParameterizedPlayer {
         }
     }
 
-    /**
-     * Resets this player with seed and ID
-     * @param seed seed for the algorithm to use in the random generator
-     * @param playerID ID of this player in the game.
-     */
     @Override
     public void reset(long seed, int playerID) {
         this.seed = seed;
@@ -62,18 +51,18 @@ public class MCTSPlayer extends ParameterizedPlayer {
         this.params = (MCTSParams) getParameters();
         if (this.params == null) {
             this.params = new MCTSParams();
+            super.setParameters(this.params);
         }
     }
 
-    /**
-     * Action called every game tick. It must return an action to play in the real game.
-     * @param gs - current game state.
-     * @return the action to apply in the game.
-     */
     @Override
     public Types.ACTIONS act(GameState gs) {
 
-        //This allows us to use a time-bounded budget for MCTS
+        // TODO update gs
+        if (gs.getGameMode().equals(Types.GAME_MODE.TEAM_RADIO)){
+            int[] msg = gs.getMessage();
+        }
+
         ElapsedCpuTimer ect = new ElapsedCpuTimer();
         ect.setMaxTimeMillis(params.num_time);
 
@@ -90,8 +79,18 @@ public class MCTSPlayer extends ParameterizedPlayer {
         //Determine the best action to take and return it.
         int action = m_root.mostVisitedAction();
 
+        // TODO update message memory
+
         //... and return it.
         return actions[action];
+    }
+
+    @Override
+    public int[] getMessage() {
+        // default message
+        int[] message = new int[Types.MESSAGE_LENGTH];
+        message[0] = 1;
+        return message;
     }
 
     @Override
