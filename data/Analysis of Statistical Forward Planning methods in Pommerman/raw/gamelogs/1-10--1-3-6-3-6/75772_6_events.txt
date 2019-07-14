@@ -1,0 +1,7 @@
+2 | [0] placed a bomb at (1, 3)
+6 | [2] placed a bomb at (9, 7)
+11 | [0]'s bomb exploded at (1, 3)
+11 | [0] died at (0, 3) by [0]'s flame(s) (was stuck)
+15 | [2]'s bomb exploded at (9, 7)
+17 | [2] placed a bomb at (7, 9)
+20 | [2] died at (9, 8) by 's flame(s)
