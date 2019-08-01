@@ -20,7 +20,7 @@ This runs either a single game of pommerman (visuals on) or a series of games (h
 * \[arg index = 1\] Number of level generation seeds \[S\]. "-1" to execute with the ones from the paper (20). <br>
 * \[arg index = 2\] Repetitions per seed \[N\]. "1" for one game only with visuals. <br>
 * \[arg index = 3\] Vision Range \[VR\]. (0, 1, 2 for PO; -1 for Full Observability)<br>
-* \[arg index = 4-7\] Agents: <br>
+* \[arg index = 4-7\] Agents. When in TEAM, agents are mates as indices 4-6, 5-7: <br>
 	* 0 DoNothing <br>
 	* 1 Random <br>
 	* 2 OSLA <br>
@@ -31,14 +31,14 @@ This runs either a single game of pommerman (visuals on) or a series of games (h
 
 
 Examples: 
- * A single game with full observability. This is also the default mode when no arguments are passed:
+ * A single game with full observability, FFA. This is also the default mode when no arguments are passed:
  	* 'java -jar run.jar 0 1 1 -1 2 3 4 5'
- * A single game with partial observability, where you're in control of one player:
+ * A single game with partial observability, FFA, where you're in control of one player:
  	* 'java -jar run.jar 0 1 1 2 0 1 2 6'
- * Executes several games, headless. Two different random seeds for the level generation, repeated 5 times each (for a total of 5x2 games). 
- 	* 'java -jar run.jar 1 2 5 4 2 3 4 1' 
- * Executes several games, headless, repeated 10 times each. Same configuration as the one used in the paper, including the 20 seeds.
- 	* 'java -jar run.jar 1 -1 10 4 2 3 4 1' 
+ * Executes several games, headless, FFA. Two different random seeds for the level generation, repeated 5 times each (for a total of 5x2 games). 
+ 	* 'java -jar run.jar 0 2 5 4 2 3 4 1' 
+ * Executes several games, headless, TEAM, repeated 10 times each. Same configuration as the one used in the paper, including the 20 seeds.
+ 	* 'java -jar run.jar 1 -1 10 4 5 3 5 3' 
 
 
 Notes:
