@@ -14,12 +14,13 @@ AIIDE 2019 Artifact
 Executing Run.java / run.jar
 ----------------------------
 
-This runs either a single game of pommerman (visuals on) or a series of games (headless), reporting statistics at the end. The usage is 'java Run' or 'java -jar run.jar' with 7 parameters:
+This runs either a single game of pommerman (visuals on) or a series of games (headless), reporting statistics at the end. The usage is 'java Run' or 'java -jar run.jar' with 8 parameters:
 
 * \[arg index = 0\] Game Mode. 0: FFA; 1: TEAM <br>
-* \[arg index = 1\] Repetitions per seed \[N\]. "1" for one game only with visuals. <br>
-* \[arg index = 2\] Vision Range \[R\] <br>
-* \[arg index = 3-6\] Agents: <br>
+* \[arg index = 1\] Number of level generation seeds \[S\]. "-1" to execute with the ones from the paper (20). <br>
+* \[arg index = 2\] Repetitions per seed \[N\]. "1" for one game only with visuals. <br>
+* \[arg index = 3\] Vision Range \[VR\]. (0, 1, 2 for PO; -1 for Full Observability)<br>
+* \[arg index = 4-7\] Agents: <br>
 	* 0 DoNothing <br>
 	* 1 Random <br>
 	* 2 OSLA <br>
@@ -28,10 +29,22 @@ This runs either a single game of pommerman (visuals on) or a series of games (h
 	* 5 MCTS 200 iterations, length: 12 <br>
 	* 6 Human Player (controls: cursor keys + space bar)  <br>
 
+
+Examples: 
+ * A single game with full observability. This is also the default mode when no arguments are passed:
+ 	* 'java -jar run.jar 0 1 1 -1 2 3 4 5'
+ * A single game with partial observability, where you're in control of one player:
+ 	* 'java -jar run.jar 0 1 1 2 0 1 2 6'
+ * Executes several games, headless. Two different random seeds for the level generation, repeated 5 times each (for a total of 5x2 games). 
+ 	* 'java -jar run.jar 1 2 5 4 2 3 4 1' 
+ * Executes several games, headless, repeated 10 times each. Same configuration as the one used in the paper, including the 20 seeds.
+ 	* 'java -jar run.jar 1 -1 10 4 2 3 4 1' 
+
+
 Notes:
- * If you provide N=1 for the second argument, the program will run a single game, with graphics on, using the agents specified in parameters 3-6.
- * If you provide N=20 for the second argument, the program will run 20 games with the *specific seeds* used in the AIIDE 2019 paper (graphics off, results reported at the end).
- * If you provide any other N>1, the program will run N games with *random seeds*, with graphics off, using the agents specified in parameters 3-6 and results being reported at the end.
+ * If you provide N=1, the program will run a single game, with graphics on, using the agents specified in parameters 4-7.
+ * If you provide S=-1, the program will run N games with the *specific _20_ seeds* used in the AIIDE 2019 paper (graphics off, results reported at the end).
+ * If you provide any other S>1, the program will run N games with *_S_ random seeds* (total games, NxS), graphics off, using the agents specified in parameters 4-7 and results being reported at the end.
  * The Human Player (option 6) is only available when N=1.
 
 You can modify the code to execute different games as well (i.e. different agents or their parameters). For extra Java-pommerman wiki/documentation, visit this: https://github.com/GAIGResearch/java-pommerman/wiki
