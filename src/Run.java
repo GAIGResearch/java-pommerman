@@ -17,33 +17,19 @@ public class Run {
     {
         System.out.println("Usage: java Run [args]");
         System.out.println("\t [arg index = 0] Game Mode. 0: FFA; 1: TEAM");
-        System.out.println("\t [arg index = 1] Repetitions per seed [N]");
+        System.out.println("\t [arg index = 1] Repetitions per seed [N]. \"1\" for one game only with visuals.");
         System.out.println("\t [arg index = 2] Vision Range [R]");
         System.out.println("\t [arg index = 3-6] Agents:");
         System.out.println("\t\t 0 DoNothing");
         System.out.println("\t\t 1 Random");
         System.out.println("\t\t 2 OSLA");
         System.out.println("\t\t 3 SimplePlayer");
-        System.out.println("\t\t 4 RHEA 200 itereations, shift buffer, pop size 1, random init, length: 12, custom heuristic");
-        System.out.println("\t\t 5 Simple Evo Agent, shift buffer, pop size 1, random init, length: 12, custom heuristic");
-        System.out.println("\t\t 6 MCTS 200 iterations, length: 12, custom heuristic");
-        System.out.println("\t\t 7 MCTS 200 iterations, length: 12, custom heuristic");
+        System.out.println("\t\t 4 RHEA 200 itereations, shift buffer, pop size 1, random init, length: 12");
+        System.out.println("\t\t 5 MCTS 200 iterations, length: 12");
+        System.out.println("\t\t 6 Human Player (controls: cursor keys + space bar).");
     }
 
     public static void main(String[] args) {
-
-//        Random rnd = new Random();
-//        for(int i = 0; i < 20; i++)
-//        {
-//            System.out.println(rnd.nextInt(100000));
-//        }
-
-        long seeds[] = new long[] {93988, 19067, 64416, 83884, 55636, 27599, 44350, 87872, 40815,
-                11772, 58367, 17546, 75375, 75772, 58237, 30464, 27180, 23643, 67054, 19508};
-
-
-        int RHEA_CUSTOM_HEURISTIC = 0;
-        int RHEA_ADVANCED_HEURISTIC = 1;
 
         if(args.length != 7) {
             printHelp();
@@ -52,9 +38,13 @@ public class Run {
 
         try {
 
+            Random rnd = new Random();
+
             // Create players
             ArrayList<Player> players = new ArrayList<>();
             int playerID = Types.TILETYPE.AGENT0.getKey();
+            boolean oneGame = false;
+            KeyController kc = new KeyController(true);
 
             // Init game, size and seed.
             long seed = System.currentTimeMillis();
@@ -67,17 +57,29 @@ public class Run {
             Types.DEFAULT_VISION_RANGE = Integer.parseInt(args[2]);
 
             int N = Integer.parseInt(args[1]);
+            long seeds[];
+
+            oneGame = (N == 1);
+            if (N == 20)
+            {
+                //Special case, these seeds are fixed for the experiments in the paper:
+                seeds = new long[] {93988, 19067, 64416, 83884, 55636, 27599, 44350, 87872, 40815,
+                        11772, 58367, 17546, 75375, 75772, 58237, 30464, 27180, 23643, 67054, 19508};
+            }else
+            {
+                //Otherwise, all seeds are random
+                seeds = new long[N];
+                for(int i = 0; i < N; i++)
+                    seeds[i] = rnd.nextInt(100000);
+            }
+
+
             String[] playerStr = new String[4];
 
             for(int i = 3; i <= 6; ++i) {
                 int agentType = Integer.parseInt(args[i]);
                 Player p = null;
 
-                RHEAParams rheaParams = new RHEAParams();
-
-                MCTSParams mctsParams = new MCTSParams();
-                mctsParams.stop_type = mctsParams.STOP_ITERATIONS;
-                mctsParams.rollout_depth = 12;
 
                 switch(agentType) {
                     case 0:
@@ -94,34 +96,38 @@ public class Run {
                         break;
                     case 3:
                         p = new SimplePlayer(seed, playerID++);
-                        playerStr[i-3] = "SimplePlayer";
+                        playerStr[i-3] = "RuleBased";
                         break;
                     case 4:
+                        RHEAParams rheaParams = new RHEAParams();
+                        rheaParams.budget_type = Constants.ITERATION_BUDGET;
+                        rheaParams.iteration_budget = 200;
+                        rheaParams.individual_length = 12;
                         rheaParams.heurisic_type = Constants.CUSTOM_HEURISTIC;
+
                         p = new RHEAPlayer(seed, playerID++, rheaParams);
-                        playerStr[i-3] = "RHEA-Custom";
+                        playerStr[i-3] = "RHEA";
                         break;
                     case 5:
-//                        rheaParams.heurisic_type = Constants.CUSTOM_HEURISTIC;//Constants.ADVANCED_HEURISTIC;
-//                        p = new RHEAPlayer(seed, playerID++, rheaParams);
-//                        playerStr[i-3] = "RHEA-Advanced";
+                        MCTSParams mctsParams = new MCTSParams();
+                        mctsParams.stop_type = mctsParams.STOP_ITERATIONS;
+                        mctsParams.num_iterations = 200;
+                        mctsParams.rollout_depth = 12;
 
-                        p = new SimpleEvoAgent(seed, playerID++);
-                        ((SimpleEvoAgent)p).nEvals = 200;
-                        ((SimpleEvoAgent)p).sequenceLength = 12;
-
-                        playerStr[i-3] = "SimpleEvoAgent";
-
-                        break;
-                    case 6:
                         mctsParams.heuristic_method = mctsParams.CUSTOM_HEURISTIC;
                         p = new MCTSPlayer(seed, playerID++, mctsParams);
-                        playerStr[i-3] = "MCTS-Custom";
+                        playerStr[i-3] = "MCTS";
                         break;
-                    case 7:
-                        mctsParams.heuristic_method = mctsParams.CUSTOM_HEURISTIC;//mctsParams.ADVANCED_HEURISTIC;
-                        p = new MCTSPlayer(seed, playerID++, mctsParams);
-                        playerStr[i-3] = "MCTS-ADVANCED";
+                    case 6:
+
+                        if(!oneGame)
+                        {
+                            System.out.println("ERROR: Human players only available for N=1.");
+                        }else {
+
+                            p = new HumanPlayer(kc, playerID++);
+                            playerStr[i - 3] = "HumanPlayer";
+                        }
                         break;
                     default:
                         System.out.println("WARNING: Invalid agent ID: " + agentType );
@@ -152,8 +158,10 @@ public class Run {
             }
             System.out.println("]");
 
-//            runGame(game, new KeyController(true), new KeyController(false));
-            runGames(game, seeds, N, false);
+            if(oneGame)
+                runGame(game, kc, new KeyController(false), false);
+            else
+                runGames(game, seeds, N, false);
 
         } catch(Exception e) {
             e.printStackTrace();
