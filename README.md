@@ -12,22 +12,22 @@ Execution modes:
 Run.java / run.jar
 ------------------
 
-This runs either a single game of pommerman (visuals on) or a series of games (headless), reporting statistics at the end. The usage is:
+This runs either a single game of pommerman (visuals on) or a series of games (headless), reporting statistics at the end. The usage is 'java Run' or 'java -jar run.jar' with 7 parameters:
 
-Usage: java Run \[args\]
-	 \[arg index = 0\] Game Mode. 0: FFA; 1: TEAM
-	 \[arg index = 1\] Repetitions per seed \[N\]. "1" for one game only with visuals.
-	 \[arg index = 2\] Vision Range \[R\]
-	 \[arg index = 3-6\] Agents:
-		 0 DoNothing
-		 1 Random
-		 2 OSLA
-		 3 SimplePlayer
-		 4 RHEA 200 itereations, shift buffer On, pop size 1, random init, length: 12
-		 5 MCTS 200 iterations, length: 12
+* \[arg index = 0\] Game Mode. 0: FFA; 1: TEAM <br>
+* \[arg index = 1\] Repetitions per seed \[N\]. "1" for one game only with visuals. <br>
+* \[arg index = 2\] Vision Range \[R\] <br>
+* \[arg index = 3-6\] Agents: <br>
+	* 0 DoNothing <br>
+	* 1 Random <br>
+	* 2 OSLA <br>
+	* 3 SimplePlayer <br>
+	* 4 RHEA 200 itereations, shift buffer On, pop size 1, random init, length: 12 <br>
+	* 5 MCTS 200 iterations, length: 12 <br>
 
+Notes:
+ * If you provide N=1 for the second argument, the program will run a single game, with graphics on, using the agents specified in parameters 3-6.
+ * If you provide N=20 for the second argument, the program will run 20 games with the *specific seeds* used in the AIIDE 2019 paper (graphics off, results reported at the end).
+ * If you provide any other N>1, the program will run N games with *random seeds*, with graphics off, using the agents specified in parameters 3-6 and results being reported at the end.
 
-
-
-
-Java-pommerman wiki/documentation: https://github.com/GAIGResearch/java-pommerman/wiki
+You can modify the code to execute different games as well (i.e. different agents or their parameters). For extra Java-pommerman wiki/documentation, visit this: https://github.com/GAIGResearch/java-pommerman/wiki
