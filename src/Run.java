@@ -17,9 +17,10 @@ public class Run {
     {
         System.out.println("Usage: java Run [args]");
         System.out.println("\t [arg index = 0] Game Mode. 0: FFA; 1: TEAM");
-        System.out.println("\t [arg index = 1] Repetitions per seed [N]. \"1\" for one game only with visuals.");
-        System.out.println("\t [arg index = 2] Vision Range [R]");
-        System.out.println("\t [arg index = 3-6] Agents:");
+        System.out.println("\t [arg index = 1] Number of level generation seeds. \"-1\" to execute with the ones from paper (20).");
+        System.out.println("\t [arg index = 2] Repetitions per seed [N]. \"1\" for one game only with visuals.");
+        System.out.println("\t [arg index = 3] Vision Range [VR]. (0, 1, 2 for PO; -1 for Full Observability)");
+        System.out.println("\t [arg index = 4-7] Agents. When in TEAM, agents are mates as indices 4-6, 5-7:");
         System.out.println("\t\t 0 DoNothing");
         System.out.println("\t\t 1 Random");
         System.out.println("\t\t 2 OSLA");
@@ -31,7 +32,11 @@ public class Run {
 
     public static void main(String[] args) {
 
-        if(args.length != 7) {
+        //default
+        if(args.length == 0)
+            args = new String[]{"0", "1", "1", "-1", "2", "3", "4", "5"};
+
+        if(args.length != 8) {
             printHelp();
             return;
         }
@@ -54,29 +59,36 @@ public class Run {
             if(Integer.parseInt(args[0]) == 1)
                 gMode = Types.GAME_MODE.TEAM;
 
-            Types.DEFAULT_VISION_RANGE = Integer.parseInt(args[2]);
 
-            int N = Integer.parseInt(args[1]);
+
+            int S = Integer.parseInt(args[1]);
+            int N = Integer.parseInt(args[2]);
+            Types.DEFAULT_VISION_RANGE = Integer.parseInt(args[3]);
+
             long seeds[];
 
             oneGame = (N == 1);
-            if (N == 20)
+
+            if (S == -1)
             {
                 //Special case, these seeds are fixed for the experiments in the paper:
                 seeds = new long[] {93988, 19067, 64416, 83884, 55636, 27599, 44350, 87872, 40815,
                         11772, 58367, 17546, 75375, 75772, 58237, 30464, 27180, 23643, 67054, 19508};
             }else
             {
+                if(S <= 0)
+                    S = 1;
+
                 //Otherwise, all seeds are random
-                seeds = new long[N];
-                for(int i = 0; i < N; i++)
+                seeds = new long[S];
+                for(int i = 0; i < S; i++)
                     seeds[i] = rnd.nextInt(100000);
             }
 
 
             String[] playerStr = new String[4];
 
-            for(int i = 3; i <= 6; ++i) {
+            for(int i = 4; i <= 7; ++i) {
                 int agentType = Integer.parseInt(args[i]);
                 Player p = null;
 
@@ -84,19 +96,19 @@ public class Run {
                 switch(agentType) {
                     case 0:
                         p = new DoNothingPlayer(playerID++);
-                        playerStr[i-3] = "DoNothing";
+                        playerStr[i-4] = "DoNothing";
                         break;
                     case 1:
                         p = new RandomPlayer(seed, playerID++);
-                        playerStr[i-3] = "Random";
+                        playerStr[i-4] = "Random";
                         break;
                     case 2:
                         p = new OSLAPlayer(seed, playerID++);
-                        playerStr[i-3] = "OSLA";
+                        playerStr[i-4] = "OSLA";
                         break;
                     case 3:
                         p = new SimplePlayer(seed, playerID++);
-                        playerStr[i-3] = "RuleBased";
+                        playerStr[i-4] = "RuleBased";
                         break;
                     case 4:
                         RHEAParams rheaParams = new RHEAParams();
@@ -106,7 +118,7 @@ public class Run {
                         rheaParams.heurisic_type = Constants.CUSTOM_HEURISTIC;
 
                         p = new RHEAPlayer(seed, playerID++, rheaParams);
-                        playerStr[i-3] = "RHEA";
+                        playerStr[i-4] = "RHEA";
                         break;
                     case 5:
                         MCTSParams mctsParams = new MCTSParams();
@@ -116,7 +128,7 @@ public class Run {
 
                         mctsParams.heuristic_method = mctsParams.CUSTOM_HEURISTIC;
                         p = new MCTSPlayer(seed, playerID++, mctsParams);
-                        playerStr[i-3] = "MCTS";
+                        playerStr[i-4] = "MCTS";
                         break;
                     case 6:
 
@@ -126,7 +138,7 @@ public class Run {
                         }else {
 
                             p = new HumanPlayer(kc, playerID++);
-                            playerStr[i - 3] = "HumanPlayer";
+                            playerStr[i-4] = "HumanPlayer";
                         }
                         break;
                     default:
@@ -137,9 +149,9 @@ public class Run {
             }
 
             String gameIdStr = "";
-            for(int i = 0; i <= 6; ++i) {
+            for(int i = 0; i <= 7; ++i) {
                 gameIdStr += args[i];
-                if(i != 6)
+                if(i != 7)
                     gameIdStr+="-";
             }
 
