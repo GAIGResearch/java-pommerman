@@ -8,7 +8,7 @@ AIIDE 2019 Artifact
 * Instructions to run the artifact:
  0) You need Java 9.0.1 version (or higher) to run this code.
  1) Option 1: download the source, compile and execute the class Run.java (see below for execution modes). 
- 2) Option 2: directly run run.jar, included in jars/
+ 2) Option 2: directly run run.jar, included in jars/ 
 
 
 Executing Run.java / run.jar
@@ -36,6 +36,7 @@ Notes:
 
 You can modify the code to execute different games as well (i.e. different agents or their parameters). For extra Java-pommerman wiki/documentation, visit this: https://github.com/GAIGResearch/java-pommerman/wiki
 
+All games you play are logged in res/gamelogs/
 
 Extra
 -----
