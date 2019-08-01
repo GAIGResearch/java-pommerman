@@ -33,3 +33,14 @@ Notes:
  * If you provide any other N>1, the program will run N games with *random seeds*, with graphics off, using the agents specified in parameters 3-6 and results being reported at the end.
 
 You can modify the code to execute different games as well (i.e. different agents or their parameters). For extra Java-pommerman wiki/documentation, visit this: https://github.com/GAIGResearch/java-pommerman/wiki
+
+
+Extra
+-----
+
+All raw data and plots for the results reported in the paper is in the data/ folder (contains *more* plots than what could be included in the paper). You can either:
+
+1) Download the Zip file here https://github.com/GAIGResearch/java-pommerman/blob/master/data/Analysis%20of%20Statistical%20Forward%20Planning%20methods%20in%20Pommerman.zip?raw=true
+2) Explore the raw data and all generated plots on the repository yourself: https://github.com/GAIGResearch/java-pommerman/tree/master/data/Analysis%20of%20Statistical%20Forward%20Planning%20methods%20in%20Pommerman
+
+
