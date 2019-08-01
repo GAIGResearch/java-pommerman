@@ -32,13 +32,13 @@ This runs either a single game of pommerman (visuals on) or a series of games (h
 
 Examples: 
  * A single game with full observability, FFA. This is also the default mode when no arguments are passed:
- 	* 'java -jar run.jar 0 1 1 -1 2 3 4 5'
+ 	* *java -jar run.jar 0 1 1 -1 2 3 4 5*
  * A single game with partial observability, FFA, where you're in control of one player:
- 	* 'java -jar run.jar 0 1 1 2 0 1 2 6'
+ 	* *java -jar run.jar 0 1 1 2 0 1 2 6*
  * Executes several games, headless, FFA. Two different random seeds for the level generation, repeated 5 times each (for a total of 5x2 games). 
- 	* 'java -jar run.jar 0 2 5 4 2 3 4 1' 
+ 	* *java -jar run.jar 0 2 5 4 2 3 4 1* 
  * Executes several games, headless, TEAM, repeated 10 times each. Same configuration as the one used in the paper, including the 20 seeds.
- 	* 'java -jar run.jar 1 -1 10 4 5 3 5 3' 
+ 	* *java -jar run.jar 1 -1 10 4 5 3 5 3* 
 
 
 Notes:
