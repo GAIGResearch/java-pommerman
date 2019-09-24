@@ -23,10 +23,7 @@ public class SimplePlayer extends Player {
      */
     public SimplePlayer(long seed, int id) {
         super(seed, id);
-        random = new Random(seed);
-
-        this.recentlyVisitedPositions = new ArrayList<>();
-        this.recentlyVisitedLength = 6;
+        reset(seed, id);
     }
 
 
@@ -42,6 +39,15 @@ public class SimplePlayer extends Player {
         player.recentlyVisitedLength = recentlyVisitedLength;
         //player.prevDirection = prevDirection;
         return player;
+    }
+
+    @Override
+    public void reset(long seed, int playerID) {
+        super.reset(seed, playerID);
+        random = new Random(seed);
+
+        this.recentlyVisitedPositions = new ArrayList<>();
+        this.recentlyVisitedLength = 6;
     }
 
     // Container for return values of Dijkstra's pathfinding algorithm.

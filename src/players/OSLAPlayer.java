@@ -18,6 +18,12 @@ public class OSLAPlayer extends Player {
 
     public OSLAPlayer(long seed, int id) {
         super(seed, id);
+        reset(seed, id);
+    }
+
+    @Override
+    public void reset(long seed, int playerID) {
+        super.reset(seed, playerID);
         random = new Random(seed);
     }
 
