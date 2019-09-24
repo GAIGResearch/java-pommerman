@@ -188,11 +188,12 @@ public class Run {
         int totalNgames = numSeeds * repetitions;
 
         for(int s = 0; s<numSeeds; s++) {
+            long seed = seeds[s];
 
             for (int i = 0; i < repetitions; i++) {
-                long seed = seeds[s];
+                long playerSeed = System.currentTimeMillis();
 
-                System.out.print( seed + ", " + (s*repetitions + i) + "/" + totalNgames + ", ");
+                System.out.print( playerSeed + ", " + seed + ", " + (s*repetitions + i) + "/" + totalNgames + ", ");
 
                 g.reset(seed);
                 EventsStatistics.REP = i;
@@ -201,7 +202,7 @@ public class Run {
                 // Set random seed for players and reset them
                 ArrayList<Player> players = g.getPlayers();
                 for (int p = 0; p < g.nPlayers(); p++) {
-                    players.get(p).reset(seed, p);
+                    players.get(p).reset(playerSeed, p);
                 }
                 Types.RESULT[] results = g.run(useSeparateThreads);
 
