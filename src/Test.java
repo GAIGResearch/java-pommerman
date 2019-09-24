@@ -20,7 +20,7 @@ public class Test {
         Types.GAME_MODE gameMode = Types.GAME_MODE.FFA;
         boolean useSeparateThreads = false;
 
-        Game game = new Game(seed, boardSize, Types.GAME_MODE.TEAM_RADIO, "");
+        Game game = new Game(seed, boardSize, Types.GAME_MODE.FFA, "");
 
         // Key controllers for human player s (up to 2 so far).
         KeyController ki1 = new KeyController(true);
