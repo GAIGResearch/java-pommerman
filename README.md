@@ -6,7 +6,7 @@ AIIDE 2019 Artifact
 * Download the artifact: clone this repository (master branch) or download as .zip file here: https://github.com/GAIGResearch/java-pommerman/archive/master.zip
 
 * Instructions to run the artifact:
- 0) You need Java 9.0.1 version (or higher) to run this code.
+ 0) You need Java 8.0.1 version (or higher) to run this code.
  1) Option 1: download the source, compile and execute the class Run.java (see below for execution modes). 
  2) Option 2: directly run run.jar, included in jars/ 
 
