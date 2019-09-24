@@ -39,8 +39,8 @@ public class Game {
     private String gameIdStr;
 
     // Log flags
-    public static boolean LOG_GAME = true;
-    public static boolean LOG_GAME_JSON = true; // If the game is being logged, should it be saved to json
+    public static boolean LOG_GAME = false;
+    public static boolean LOG_GAME_JSON = false; // If the game is being logged, should it be saved to json
 
     // Variables for multi-threaded run 
     private Actor[] actors = new Actor[NUM_PLAYERS];

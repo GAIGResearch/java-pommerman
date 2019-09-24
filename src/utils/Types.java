@@ -47,7 +47,7 @@ public class Types {
     public static boolean VERBOSE = false;
     public static boolean VERBOSE_FM_DEBUG = false;
     public static boolean VISUALS = true;
-    public static boolean LOGGING_STATISTICS = true;
+    public static boolean LOGGING_STATISTICS = false;
 
     public final static int NUM_PLAYERS = 4;  //Changing this is NOT going to work (Forward Model assumes 4 players).
     public static int NUM_ACTIONS = 6;        //Changing this is NOT going to work either.
