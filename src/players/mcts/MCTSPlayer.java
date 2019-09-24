@@ -44,8 +44,7 @@ public class MCTSPlayer extends ParameterizedPlayer {
 
     @Override
     public void reset(long seed, int playerID) {
-        this.seed = seed;
-        this.playerID = playerID;
+        super.reset(seed, playerID);
         m_rnd = new Random(seed);
 
         this.params = (MCTSParams) getParameters();

@@ -38,5 +38,4 @@ public abstract class ParameterizedPlayer extends Player {
         this.seed = seed;
     }
 
-    public abstract void reset(long seed, int playerID);
 }
