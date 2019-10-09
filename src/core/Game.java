@@ -46,6 +46,9 @@ public class Game {
     private Actor[] actors = new Actor[NUM_PLAYERS];
     private Thread[] threads = new Thread[NUM_PLAYERS];
 
+    //Counts how many time a player did overtime
+    private int[] playerOvertimes = new int[NUM_PLAYERS];
+
     /**
      * Constructor of the game
      * @param seed Seed for the game (used only for board generation)
@@ -306,7 +309,22 @@ public class Game {
 
             // Check if this player is still playing
             if (gameStateObservations[i].winner() == Types.RESULT.INCOMPLETE) {
+
+                ElapsedCpuTimer ect = new ElapsedCpuTimer();
+                ect.setMaxTimeMillis(Types.DECISION_TIME_LIMIT);
+
                 actions[i] = p.act(gameStateObservations[i]);
+
+                long elapsedTime = ect.elapsedMillis();
+                if(CHECK_DECISION_TIME && elapsedTime > DECISION_TIME_LIMIT)
+                {
+                    if(VERBOSE)
+                        System.out.println("Player " + p.getPlayerID() + " used more time than allowed (" + elapsedTime + "ms). Executing action STOP.");
+                    actions[i] = ACTIONS.ACTION_STOP;
+                    playerOvertimes[i]++;
+                }
+
+
             } else {
                 // This player is dead and action will be ignored
                 actions[i] = Types.ACTIONS.ACTION_STOP;
@@ -430,7 +448,18 @@ public class Game {
 
 //        if (VERBOSE) {
 //        System.out.println("GameOver: " + Arrays.toString(results));
-        System.out.println(Arrays.toString(results));
+//        System.out.println(Arrays.toString(results));
+
+        System.out.print("[");
+        for(int i = 0; i < results.length; ++i)
+        {
+            System.out.print(results[i] + (" (" + playerOvertimes[i] + ")"));
+            if(i == results.length-1)
+                System.out.println("]");
+            else
+                System.out.print(", ");
+        }
+
 //        }
         return results;
     }
@@ -584,6 +613,8 @@ public class Game {
     public GameLog getGameLog() {
         return gameLog;
     }
+
+    public int[] getPlayerOvertimes() {return playerOvertimes;}
 
     /**
      * Actor class for running multi-threaded games. Each player is an Actor.
