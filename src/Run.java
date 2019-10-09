@@ -184,6 +184,9 @@ public class Run {
         int[] winCount = new int[numPlayers];
         int[] tieCount = new int[numPlayers];
         int[] lossCount = new int[numPlayers];
+
+        int[] overtimeCount = new int[numPlayers];
+
         int numSeeds = seeds.length;
         int totalNgames = numSeeds * repetitions;
 
@@ -219,19 +222,25 @@ public class Run {
                             break;
                     }
                 }
+
+                int[] overtimes = g.getPlayerOvertimes();
+                for(int j = 0; j < overtimes.length; ++j)
+                    overtimeCount[j] += overtimes[j];
+
             }
         }
 
         //Done, show stats
-        System.out.println("N \tWin \tTie \tLoss \tPlayer");
+        System.out.println("N \tWin \tTie \tLoss \tPlayer (overtime average)");
         for (int pIdx = 0; pIdx < numPlayers; pIdx++) {
             String player = g.getPlayers().get(pIdx).getClass().toString().replaceFirst("class ", "");
 
             double winPerc = winCount[pIdx] * 100.0 / (double)totalNgames;
             double tiePerc = tieCount[pIdx] * 100.0 / (double)totalNgames;
             double lossPerc = lossCount[pIdx] * 100.0 / (double)totalNgames;
+            double overtimesAvg = overtimeCount[pIdx] / (double)totalNgames;
 
-            System.out.println(totalNgames + "\t" + winPerc + "%\t" + tiePerc + "%\t" + lossPerc + "%\t" + player );
+            System.out.println(totalNgames + "\t" + winPerc + "%\t" + tiePerc + "%\t" + lossPerc + "%\t" + player + " (" + overtimesAvg + ")" );
         }
     }
 }
