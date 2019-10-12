@@ -27,7 +27,6 @@ public class Run {
         System.out.println("\t\t 3 SimplePlayer");
         System.out.println("\t\t 4 RHEA 200 itereations, shift buffer, pop size 1, random init, length: 12");
         System.out.println("\t\t 5 MCTS 200 iterations, length: 12");
-        System.out.println("\t\t 6 Human Player (controls: cursor keys + space bar).");
     }
 
     public static void main(String[] args) {
@@ -48,26 +47,17 @@ public class Run {
             // Create players
             ArrayList<Player> players = new ArrayList<>();
             int playerID = Types.TILETYPE.AGENT0.getKey();
-            boolean oneGame = false;
-            KeyController kc = new KeyController(true);
-
-            // Init game, size and seed.
-            long seed = System.currentTimeMillis();
             int boardSize = Types.BOARD_SIZE;
 
             Types.GAME_MODE gMode = Types.GAME_MODE.FFA;
             if(Integer.parseInt(args[0]) == 1)
                 gMode = Types.GAME_MODE.TEAM;
 
-
-
             int S = Integer.parseInt(args[1]);
             int N = Integer.parseInt(args[2]);
             Types.DEFAULT_VISION_RANGE = Integer.parseInt(args[3]);
 
             long seeds[];
-
-            oneGame = (N == 1);
 
             if (S == -1)
             {
@@ -85,6 +75,7 @@ public class Run {
                     seeds[i] = rnd.nextInt(100000);
             }
 
+            long seed = 0;
 
             String[] playerStr = new String[4];
 
@@ -130,17 +121,6 @@ public class Run {
                         p = new MCTSPlayer(seed, playerID++, mctsParams);
                         playerStr[i-4] = "MCTS";
                         break;
-                    case 6:
-
-                        if(!oneGame)
-                        {
-                            System.out.println("ERROR: Human players only available for N=1.");
-                        }else {
-
-                            p = new HumanPlayer(kc, playerID++);
-                            playerStr[i-4] = "HumanPlayer";
-                        }
-                        break;
                     default:
                         System.out.println("WARNING: Invalid agent ID: " + agentType );
                 }
@@ -170,11 +150,7 @@ public class Run {
             }
             System.out.println("]");
 
-            if(oneGame)
-                runGame(game, kc, new KeyController(false), false);
-            else
-                runGames(game, seeds, N, false);
-
+            runGames(game, seeds, N, false);
         } catch(Exception e) {
             e.printStackTrace();
             printHelp();
@@ -208,20 +184,29 @@ public class Run {
         int[] winCount = new int[numPlayers];
         int[] tieCount = new int[numPlayers];
         int[] lossCount = new int[numPlayers];
+
+        int[] overtimeCount = new int[numPlayers];
+
         int numSeeds = seeds.length;
         int totalNgames = numSeeds * repetitions;
 
         for(int s = 0; s<numSeeds; s++) {
+            long seed = seeds[s];
 
             for (int i = 0; i < repetitions; i++) {
-                long seed = seeds[s];
+                long playerSeed = System.currentTimeMillis();
 
-                System.out.print( seed + ", " + (s*repetitions + i) + "/" + totalNgames + ", ");
+                System.out.print( playerSeed + ", " + seed + ", " + (s*repetitions + i) + "/" + totalNgames + ", ");
 
                 g.reset(seed);
                 EventsStatistics.REP = i;
                 GameLog.REP = i;
 
+                // Set random seed for players and reset them
+                ArrayList<Player> players = g.getPlayers();
+                for (int p = 0; p < g.nPlayers(); p++) {
+                    players.get(p).reset(playerSeed, p);
+                }
                 Types.RESULT[] results = g.run(useSeparateThreads);
 
                 for (int pIdx = 0; pIdx < numPlayers; pIdx++) {
@@ -237,19 +222,25 @@ public class Run {
                             break;
                     }
                 }
+
+                int[] overtimes = g.getPlayerOvertimes();
+                for(int j = 0; j < overtimes.length; ++j)
+                    overtimeCount[j] += overtimes[j];
+
             }
         }
 
         //Done, show stats
-        System.out.println("N \tWin \tTie \tLoss \tPlayer");
+        System.out.println("N \tWin \tTie \tLoss \tPlayer (overtime average)");
         for (int pIdx = 0; pIdx < numPlayers; pIdx++) {
             String player = g.getPlayers().get(pIdx).getClass().toString().replaceFirst("class ", "");
 
             double winPerc = winCount[pIdx] * 100.0 / (double)totalNgames;
             double tiePerc = tieCount[pIdx] * 100.0 / (double)totalNgames;
             double lossPerc = lossCount[pIdx] * 100.0 / (double)totalNgames;
+            double overtimesAvg = overtimeCount[pIdx] / (double)totalNgames;
 
-            System.out.println(totalNgames + "\t" + winPerc + "%\t" + tiePerc + "%\t" + lossPerc + "%\t" + player );
+            System.out.println(totalNgames + "\t" + winPerc + "%\t" + tiePerc + "%\t" + lossPerc + "%\t" + player + " (" + overtimesAvg + ")" );
         }
     }
 }

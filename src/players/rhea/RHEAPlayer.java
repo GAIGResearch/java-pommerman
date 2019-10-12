@@ -26,8 +26,7 @@ public class RHEAPlayer extends ParameterizedPlayer {
 
     @Override
     public void reset(long seed, int playerID) {
-        this.seed = seed;
-        this.playerID = playerID;
+        super.reset(seed, playerID);
 
         // Make sure we have parameters
         this.params = (RHEAParams) getParameters();

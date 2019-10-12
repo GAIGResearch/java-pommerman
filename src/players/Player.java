@@ -19,8 +19,7 @@ public abstract class Player {
      * @param pId - this player's ID.
      */
     protected Player(long seed, int pId) {
-        this.playerID = pId;
-        this.seed = seed;
+        reset(seed, pId);
     }
 
     /**
@@ -59,4 +58,9 @@ public abstract class Player {
     }
 
     public abstract Player copy();
+
+    public void reset(long seed, int playerID) {
+        this.playerID = playerID;
+        this.seed = seed;
+    }
 }

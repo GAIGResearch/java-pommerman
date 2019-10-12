@@ -56,6 +56,11 @@ public class Types {
     public static int MESSAGE_LENGTH = 5;
     public static int MESSAGE_HISTORY = 5; // only keep previous 5 messages
 
+    // Decision time limit
+    public static boolean CHECK_DECISION_TIME = true;
+    public static int DECISION_TIME_LIMIT = 100; // ms to decide an action
+
+
     public static IGameConfig getGameConfig() {return gameConfig;}
 
     /**

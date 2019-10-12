@@ -11,9 +11,14 @@ public class RandomPlayer extends Player {
 
     public RandomPlayer(long seed, int id) {
         super(seed, id);
-        random = new Random(seed);
+        reset(seed, id);
     }
 
+    @Override
+    public void reset(long seed, int playerID) {
+        super.reset(seed, playerID);
+        random = new Random(seed);
+    }
 
     @Override
     public Types.ACTIONS act(GameState gs) {
