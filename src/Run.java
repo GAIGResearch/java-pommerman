@@ -34,7 +34,7 @@ public class Run {
 
         //default
         if(args.length == 0)
-            args = new String[]{"0", "1", "1", "-1", "2", "3", "4", "5"};
+            args = new String[]{"0", "1", "1", "-1", "2", "2", "4", "5"};
 
         if(args.length != 8) {
             printHelp();

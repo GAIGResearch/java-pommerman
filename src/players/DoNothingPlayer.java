@@ -3,6 +3,7 @@ package players;
 import core.GameState;
 import utils.Types;
 
+// This player literally does nothing but just stand there.
 public class DoNothingPlayer extends Player {
     public DoNothingPlayer(int pId) {
         super(0, pId);

@@ -24,9 +24,9 @@ public class MCTSParams implements ParameterSet {
     public double epsilon = 1e-6;
 
     // Parameters
-    public double K = Math.sqrt(2);
-    public int rollout_depth = 8;//10;
-    public int heuristic_method = CUSTOM_HEURISTIC;
+    public double K = Math.sqrt(2); // Constant for UCB1
+    public int rollout_depth = 8;//10; //number of steps the tree cam grow form the tree
+    public int heuristic_method = CUSTOM_HEURISTIC; //heurisitc to evaluate the states
 
     // Budget settings
     public int stop_type = STOP_TIME;

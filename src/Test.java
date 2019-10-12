@@ -20,7 +20,7 @@ public class Test {
         Types.GAME_MODE gameMode = Types.GAME_MODE.FFA;
         boolean useSeparateThreads = false;
 
-        Game game = new Game(seed, boardSize, Types.GAME_MODE.FFA, "");
+        Game game = new Game(seed, boardSize, Types.GAME_MODE.TEAM, "");
 
         // Key controllers for human player s (up to 2 so far).
         KeyController ki1 = new KeyController(true);
@@ -37,11 +37,12 @@ public class Test {
         RHEAParams rheaParams = new RHEAParams();
         rheaParams.heurisic_type = Constants.CUSTOM_HEURISTIC;
 
-        players.add(new MCTSPlayer(seed, playerID++, mctsParams));
+//        players.add(new MCTSPlayer(seed, playerID++, mctsParams));
         //players.add(new MCTSPlayer(seed, playerID++, mctsParams));
 
 //        players.add(new SimplePlayer(seed, playerID++));
-        //players.add(new RHEAPlayer(seed, playerID++, rheaParams));
+        players.add(new RHEAPlayer(seed, playerID++, rheaParams));
+//        players.add(new HumanPlayer(ki1, playerID++));
         players.add(new SimplePlayer(seed, playerID++));
         players.add(new MCTSPlayer(seed, playerID++, new MCTSParams()));
         players.add(new SimplePlayer(seed, playerID++));

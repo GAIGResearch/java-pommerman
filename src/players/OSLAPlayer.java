@@ -25,14 +25,14 @@ public class OSLAPlayer extends Player {
     public Types.ACTIONS act(GameState gs) {
 
         rootStateHeuristic = new CustomHeuristic(gs);
-        rndOpponentModel = true;
+        rndOpponentModel = false;
 
         ArrayList<Types.ACTIONS> actionsList = Types.ACTIONS.all();
-        double maxQ = Double.NEGATIVE_INFINITY;
+        double maxQ = Double.NEGATIVE_INFINITY; //maxQ - max results from the Action policy
         Types.ACTIONS bestAction = null;
 
         for (Types.ACTIONS act : actionsList) {
-            GameState gsCopy = gs.copy();
+            GameState gsCopy = gs.copy(); //creates an exact copy of the game state.
             rollRnd(gsCopy, act);
             double valState = rootStateHeuristic.evaluateState(gsCopy);
 
@@ -70,6 +70,7 @@ public class OSLAPlayer extends Player {
 
         for(int i = 0; i < nPlayers; ++i)
         {
+            //playerID starts from 10 to 13 ( so we have to normalise them btwn 0-3 by substracting 10
             if(i == getPlayerID() - Types.TILETYPE.AGENT0.getKey())
             {
                 actionsAll[i] = act;
@@ -84,6 +85,7 @@ public class OSLAPlayer extends Player {
             }
         }
 
+        //advances the game state by applying all actions received by parameter
         gs.next(actionsAll);
     }
 }
