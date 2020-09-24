@@ -1,5 +1,6 @@
 package utils;
 
+import core.Game;
 import objects.Avatar;
 import objects.GameObject;
 
@@ -17,19 +18,21 @@ public class AvatarView extends JComponent {
     private int cellSize;
     private GameObject[] avatars;
     @SuppressWarnings("FieldCanBeLocal")
-    private int offsetX = 40, offsetY = 18;
+    private int offsetX = 40, offsetY = 25;
     private boolean[] alive;
+    private Game game;
 
     /**
      * Dimensions of the window.
      */
     private Dimension size;
 
-    AvatarView(GameObject[] avatars)
+    AvatarView(Game game, GameObject[] avatars)
     {
+        this.game = game;
         alive = new boolean[avatars.length];
         this.cellSize = Types.AVATAR_ICON_SIZE; //(int) (cellSize * 2 / 3.0);
-        this.size = new Dimension(avatars.length * (this.cellSize + offsetX), this.cellSize + offsetY);
+        this.size = new Dimension(avatars.length * (this.cellSize + offsetX), this.cellSize + offsetY*2);
         copyObjects(avatars);
         update(avatars);
     }
@@ -65,7 +68,7 @@ public class AvatarView extends JComponent {
                     }
 
                     // Draw this avatar image
-                    Rectangle rect = new Rectangle(x + cellSize/4, y, cellSize, cellSize);
+                    Rectangle rect = new Rectangle(x + cellSize/4, y + offsetY, cellSize, cellSize);
                     Image objImage = o.getImage();
                     drawImage(g, objImage, rect);
 
@@ -77,13 +80,13 @@ public class AvatarView extends JComponent {
                     if (((Avatar)o).getWinner() != Types.RESULT.INCOMPLETE) {
                         g.setStroke(new BasicStroke(3));
                         g.setColor(((Avatar) o).getWinner().getColor());
-                        g.drawRect(rect.x, rect.y, rect.width, rect.height);
+                        g.drawRect(rect.x, rect.y + offsetY, rect.width, rect.height);
                     }
 
                     if (!alive[i]) {
                         // Draw a skull on top of dead avatars.
                         int wh = cellSize / 2;
-                        rect = new Rectangle(x + wh, y, wh, wh);
+                        rect = new Rectangle(x + wh, y + offsetY, wh, wh);
                         drawImage(g, Objects.requireNonNull(AGENTDUMMY.getImage()), rect);
                     }
 
@@ -110,21 +113,31 @@ public class AvatarView extends JComponent {
         String blast = "" + a.getBlastStrength();
         int offset2 = fontSize * blast.length();
 
-        Rectangle rect = new Rectangle(x, y, wh, wh);
+        Rectangle rect = new Rectangle(x, y + offsetY, wh, wh);
         drawImage(g, Objects.requireNonNull(EXTRABOMB.getImage()), rect);
 
-        g.drawString(ammo, x + offset1, y + fontSize);
+        g.drawString(ammo, x + offset1, y + fontSize + offsetY);
 
-        rect = new Rectangle(x + offset1 + spacingPowerups, y, wh, wh);
+        rect = new Rectangle(x + offset1 + spacingPowerups, y + offsetY, wh, wh);
         drawImage(g, Objects.requireNonNull(INCRRANGE.getImage()), rect);
 
-        g.drawString(blast, x + offset1 + offset2 + spacingPowerups, y + fontSize);
+        g.drawString(blast, x + offset1 + offset2 + spacingPowerups, y + fontSize + offsetY);
 
         if (a.canKick()) {
             wh = cellSize / 2;
-            rect = new Rectangle(x + offset1 + offset2 + spacingPowerups*2, y, wh, wh);
+            rect = new Rectangle(x + offset1 + offset2 + spacingPowerups*2, y + offsetY, wh, wh);
             drawImage(g, Objects.requireNonNull(KICK.getImage()), rect);
         }
+
+        String fullName = game.getPlayers().get(a.getPlayerID()-10).getClass().getName();
+        String agentName = "";
+        try {
+            agentName = fullName.split("\\.")[1];
+            agentName = fullName.split("\\.")[2];
+        } catch (Exception ignored) {}
+
+        agentName = agentName.replace("Player", "");
+        g.drawString(agentName, x, y-wh);
     }
 
     /**

@@ -68,6 +68,8 @@ public class GUI extends JFrame {
         gbc.gridx = 0;
         getContentPane().add(Box.createRigidArea(new Dimension(0, 10)), gbc);
 
+        setPreferredSize(new Dimension(MAIN_SCREEN_SIZE + PO_SCREEN_SIZE*3/2, MAIN_SCREEN_SIZE + PO_SCREEN_SIZE*3/2));
+
         // Frame properties
         pack();
         this.setVisible(true);
@@ -141,7 +143,7 @@ public class GUI extends JFrame {
         appTick = new JLabel("tick: 0");
         appTick.setFont(textFont);
 
-        avatarDisplayPanel = new AvatarView(game.getAvatars(-1));
+        avatarDisplayPanel = new AvatarView(game, game.getAvatars(-1));
 
         // Add everything to main panel
         mainPanel.add(appTitle, c);
