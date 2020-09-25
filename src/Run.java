@@ -261,6 +261,6 @@ public class Run {
 
         average /= ticks.size();
 
-        System.out.printf("Average Ticks : %s, Highest Ticks : %s, Lowest Ticks : %s%n", average, min, max);
+        System.out.printf("Average Ticks : %s, Highest Ticks : %s, Lowest Ticks : %s%n", average, max, min);
     }
 }
