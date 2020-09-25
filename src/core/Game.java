@@ -450,6 +450,8 @@ public class Game {
 //        System.out.println("GameOver: " + Arrays.toString(results));
 //        System.out.println(Arrays.toString(results));
 
+        System.out.print(getTick() + ", ");
+
         System.out.print("[");
         for(int i = 0; i < results.length; ++i)
         {
