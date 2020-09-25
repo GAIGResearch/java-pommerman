@@ -123,20 +123,6 @@ public class Run {
                         p = new MCTSPlayer(seed, playerID++, mctsParams);
                         playerStr[i-4] = "MCTS";
                         break;
-                    case 6:
-                        MCTSParams mctsParams1 = new MCTSParams();
-                        mctsParams1.stop_type = mctsParams1.STOP_ITERATIONS;
-                        mctsParams1.num_iterations = 200;
-                        mctsParams1.rollout_depth = 12;
-
-                        mctsParams1.heuristic_method = mctsParams1.ADVANCED_HEURISTIC;
-                        p = new MCTSPlayer(seed, playerID++, mctsParams1);
-                        playerStr[i-4] = "MCTS Adv";
-                        break;
-                    case 7:
-                        p = new MCTSPlayer(seed, playerID++);
-                        playerStr[i-4] = "MCTS NoParams";
-                        break;
                     default:
                         System.out.println("WARNING: Invalid agent ID: " + agentType );
                 }
