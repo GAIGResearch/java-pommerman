@@ -107,6 +107,7 @@ public class Run {
                         rheaParams.iteration_budget = 200;
                         rheaParams.individual_length = 12;
                         rheaParams.heurisic_type = Constants.CUSTOM_HEURISTIC;
+                        rheaParams.mutation_rate = 0.5;
 
                         p = new RHEAPlayer(seed, playerID++, rheaParams);
                         playerStr[i-4] = "RHEA";
@@ -205,7 +206,7 @@ public class Run {
                 // Set random seed for players and reset them
                 ArrayList<Player> players = g.getPlayers();
                 for (int p = 0; p < g.nPlayers(); p++) {
-                    players.get(p).reset(playerSeed, p);
+                    players.get(p).reset(playerSeed, p + Types.TILETYPE.AGENT0.getKey());
                 }
                 Types.RESULT[] results = g.run(useSeparateThreads);
 
