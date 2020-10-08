@@ -449,7 +449,11 @@ public class ForwardModel {
             ArrayList<GameObject> gos = findObjectInList(pos, bombs);
             for (GameObject go: gos) {
                 bombs.remove(go);
-                ((Avatar)agents[((Bomb)go).getPlayerIdx()]).addAmmo();
+
+                int pIdx = ((Bomb) go).getPlayerIdx();
+                if (pIdx >= 0) {
+                    ((Avatar)agents[pIdx]).addAmmo();
+                }
             }
             bombLife[y][x] = 0;
             bombBlastStrength[y][x] = 0;
