@@ -345,6 +345,7 @@ public class Game {
             // Check if this player is still playing
             if (gameStateObservations[i].winner() == Types.RESULT.INCOMPLETE) {
                 actors[i].player = p;
+                actors[i].gamestate = gameStateObservations[i];
                 threads[i] = new Thread(actors[i]);
                 threads[i].start();
             } else {
