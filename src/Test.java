@@ -55,7 +55,7 @@ public class Test {
         game.setPlayers(players);
 
         //Run a single game with the players
-//        Run.runGame(game, ki1, ki2, useSeparateThreads);
+        Run.runGame(game, ki1, ki2, useSeparateThreads);
 
         /* Uncomment to run the replay of the previous game: */
 //        if (game.isLogged()){
