@@ -18,13 +18,10 @@ public class Types {
     public static boolean DEFAULT_BOMB_KICK = false;//Can agents kick bomb by default?
     public static int DEFAULT_VISION_RANGE = -1;    //-1 for full observability, >1 for PO.
 
-    public static boolean COLLAPSE_BOARD = true;
-    public static int COLLAPSE_START = 500;
-    public static int COLLAPSE_STAGES = 4;
-    public static int COLLAPSE_STEP = ((Types.MAX_GAME_TICKS - COLLAPSE_START) / COLLAPSE_STAGES);
-
-    //Game configuration to use in the game, which determines victory conditions.
-    private static IGameConfig gameConfig = new OriginalGameConfig();
+    public static boolean COLLAPSE_BOARD = true;    //True if the board must collapse at tick COLLAPSE_START
+    public static int COLLAPSE_START = 500;         //At which game tick the board starts collapsing
+    public static int COLLAPSE_STAGES = 4;          //How many times the board will collapse another level
+    public static int COLLAPSE_STEP = ((Types.MAX_GAME_TICKS - COLLAPSE_START) / COLLAPSE_STAGES); //Number of ticks between each level collapse
 
     //Board configuration constants.
     public static int BOARD_SIZE = 11;              //Size of the board (n x n).
@@ -34,6 +31,9 @@ public class Types {
     public static int MAX_INACCESIBLE_TILES = 4;    //Number of inaccessible parts of the level allowed.
     public static int CORNER_DISTANCE = 1;          //Distance to the corner, in tiles, of the starting agent position.
     public static int BREATHING_SPACE = 2;          //Breathing space, L shaped tile section free at start around agent.
+
+    //Game configuration to use in the game, which determines victory conditions.
+    private static IGameConfig gameConfig = new OriginalGameConfig();
 
     // Visualization variables (used to display game for humans to see).
     public static int FRAME_DELAY = 100;
