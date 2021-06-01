@@ -53,18 +53,16 @@ public class Test {
 
         //Assign players and run the game.
         game.setPlayers(players);
-        game.setLogGame(true);
 
         //Run a single game with the players
 //        Run.runGame(game, ki1, ki2, useSeparateThreads);
 
         /* Uncomment to run the replay of the previous game: */
-        if (game.isLogged()){
-            Game replay = Game.getLastReplayGame();
-            game.setLogGame(false);
-            Run.runGame(replay, ki1, ki2, useSeparateThreads);
-            assert(replay.getGameState().equals(game.getGameState()));
-        }
+//        if (game.isLogged()){
+//            Game replay = Game.getLastReplayGame();
+//            Run.runGame(replay, ki1, ki2, useSeparateThreads);
+//            assert(replay.getGameState().equals(game.getGameState()));
+//        }
 
 
 
