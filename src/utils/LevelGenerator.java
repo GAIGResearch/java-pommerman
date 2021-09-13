@@ -127,8 +127,8 @@ public class LevelGenerator {
         // their respective corners.
         board[Types.CORNER_DISTANCE][Types.CORNER_DISTANCE] = Types.TILETYPE.AGENT0.getKey();
         board[size-Types.CORNER_DISTANCE -1][Types.CORNER_DISTANCE] = Types.TILETYPE.AGENT1.getKey();
-        board[size-Types.CORNER_DISTANCE -1][size-Types.CORNER_DISTANCE -1] = Types.TILETYPE.AGENT2.getKey();
-        board[Types.CORNER_DISTANCE][size-Types.CORNER_DISTANCE -1] = Types.TILETYPE.AGENT3.getKey();
+//        board[size-Types.CORNER_DISTANCE -1][size-Types.CORNER_DISTANCE -1] = Types.TILETYPE.AGENT2.getKey();
+//        board[Types.CORNER_DISTANCE][size-Types.CORNER_DISTANCE -1] = Types.TILETYPE.AGENT3.getKey();
 
         // Keep a list of the agent positions
         ArrayList<Vector2d> agent_positions = new ArrayList<>();

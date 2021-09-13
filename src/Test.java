@@ -43,8 +43,8 @@ public class Test {
 //        players.add(new SimplePlayer(seed, playerID++));
         players.add(new RHEAPlayer(seed, playerID++, rheaParams));
 //        players.add(new SimplePlayer(seed, playerID++));
-        players.add(new MCTSPlayer(seed, playerID++, new MCTSParams()));
-        players.add(new RHEAPlayer(seed, playerID++, rheaParams));
+//        players.add(new MCTSPlayer(seed, playerID++, new MCTSParams()));
+//        players.add(new RHEAPlayer(seed, playerID++, rheaParams));
 //        players.add(new HumanPlayer(ki1, playerID++));
 
         // Make sure we have exactly NUM_PLAYERS players
