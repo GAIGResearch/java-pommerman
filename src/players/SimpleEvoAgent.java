@@ -8,8 +8,6 @@ import utils.Types;
 import java.util.Arrays;
 import java.util.Random;
 
-import static utils.Types.NUM_PLAYERS;
-
 public class SimpleEvoAgent extends Player {
 
     private Random random;
@@ -25,7 +23,6 @@ public class SimpleEvoAgent extends Player {
     public boolean useShiftBuffer = true;
     public Double discountFactor = 0.99;
 
-    public boolean isolating = false;
 
     public SimpleEvoAgent(long seed, int id) {
         super(seed, id);
@@ -62,6 +59,8 @@ public class SimpleEvoAgent extends Player {
 
     int[] solution;
 
+    Player opponent = new DoNothingPlayer(0);
+
     public SimpleEvoAgent setUseShiftBuffer(boolean useShiftBuffer) {
         this.useShiftBuffer = useShiftBuffer;
         return this;
@@ -69,6 +68,11 @@ public class SimpleEvoAgent extends Player {
 
     public SimpleEvoAgent setSequenceLength(int sequenceLength) {
         this.sequenceLength = sequenceLength;
+        return this;
+    }
+
+    public SimpleEvoAgent setOpponent(Player opponent) {
+        this.opponent = opponent;
         return this;
     }
 
@@ -152,18 +156,18 @@ public class SimpleEvoAgent extends Player {
         if (discountFactor == null) {
             return evalSeqNoDiscount(gameState, seq, playerId);
         } else {
-            return evalSeqDiscounted(gameState, seq, playerId);
+            return evalSeqDiscounted(gameState, seq, playerId, discountFactor);
         }
     }
 
     private double evalSeqNoDiscount(GameState gameState, int[] seq, int playerId) {
-        double current = rootStateHeuristic.evaluateRaw(gameState);
+        double current = rootStateHeuristic.evaluateState(gameState);
         for (int action : seq) {
 
             Types.ACTIONS[] allActions = actAllPlayers(gameState, action, playerId);
             gameState.next(allActions);
         }
-        double nextScore = rootStateHeuristic.evaluateRaw(gameState);
+        double nextScore = rootStateHeuristic.evaluateState(gameState);
         double delta = nextScore - current;
         return delta;
     }
@@ -171,105 +175,44 @@ public class SimpleEvoAgent extends Player {
     private Types.ACTIONS[] actAllPlayers(GameState gs, int myAction, int playerId)
     {
         //Simple, all random first, then my position.
-        Types.ACTIONS[] actionsAll = new Types.ACTIONS[NUM_PLAYERS];
-        for(int i = 0; i < NUM_PLAYERS; ++i)
+        int nPlayers = 4;
+        Types.ACTIONS[] actionsAll = new Types.ACTIONS[4];
+        for(int i = 0; i < nPlayers; ++i)
         {
             if(i == playerId - Types.TILETYPE.AGENT0.getKey())
             {
                 actionsAll[i] = Types.ACTIONS.all().get(myAction);
             }else {
-                actionsAll[i] = Types.ACTIONS.all().get(random.nextInt(NUM_PLAYERS));
+                actionsAll[i] = opponent.act(gs);
             }
         }
         return actionsAll;
     }
 
-    private Types.ACTIONS[] actPlayer(GameState gs, int myAction, int playerId)
-    {
-        Types.ACTIONS[] actionsAll = new Types.ACTIONS[NUM_PLAYERS];
-        for(int i = 0; i < NUM_PLAYERS; ++i)
-        {
-            if(i == playerId - Types.TILETYPE.AGENT0.getKey())
-            {
-                actionsAll[i] = Types.ACTIONS.all().get(myAction);
-            }else {
-                actionsAll[i] = Types.ACTIONS.ACTION_STOP;
-            }
-        }
-        return actionsAll;
-    }
-
-    private Types.ACTIONS[] actOpponents(GameState gs, int playerId)
-    {
-        Types.ACTIONS[] actionsAll = new Types.ACTIONS[NUM_PLAYERS];
-        for(int i = 0; i < NUM_PLAYERS; ++i)
-        {
-            if(i == playerId - Types.TILETYPE.AGENT0.getKey())
-            {
-                actionsAll[i] = Types.ACTIONS.ACTION_STOP;
-            }else {
-                actionsAll[i] = Types.ACTIONS.all().get(random.nextInt(NUM_PLAYERS));
-            }
-        }
-        return actionsAll;
-    }
-
-    private double evalSeqDiscounted(GameState gameState, int[] seq, int playerId) {
-        double currentScore = rootStateHeuristic.evaluateRaw(gameState);
+    private double evalSeqDiscounted(GameState gameState, int[] seq, int playerId, double discountFactor) {
+        double currentScore = rootStateHeuristic.evaluateState(gameState);
         double delta = 0;
         double discount = 1;
 
         for (int action : seq) {
-            if (isolating) {
-                GameState playerCopy = gameState.copy();
-                Types.ACTIONS[] wrapper = actPlayer(playerCopy, action, playerId);
-                playerCopy.next(wrapper);
-                double nextScoreP = rootStateHeuristic.evaluateRaw(playerCopy);
-                double tickDeltaP = nextScoreP - currentScore;
-
-//                GameState oppCopy = gameState.copy(oppID);
-//                Types.ACTIONS[] oppActions = actOpponents(oppCopy, playerId);
-//                oppCopy.next(oppActions);
-//                double nextScoreOpp = rootStateHeuristic.evaluateState(oppCopy);
-//                double tickDeltaOpp = nextScoreOpp - currentScore;
-
-                Types.ACTIONS[] allActions = actAllPlayers(gameState, action, playerId);
-                gameState.next(allActions);
-//                double nextScoreGlob = rootStateHeuristic.evaluateRaw(gameState);
-//                double tickDeltaGlob = nextScoreGlob - currentScore;
-
-//                double tickDelta = tickDeltaP - tickDeltaGlob;
-//                currentScore = nextScoreGlob;
-                currentScore = nextScoreP;
-//                delta += tickDelta * discount;
-                delta += tickDeltaP * discount;
-                discount *= discountFactor;
-
-            } else {
-                Types.ACTIONS[] allActions = actAllPlayers(gameState, action, playerId);
-                gameState.next(allActions);
-                double nextScore = rootStateHeuristic.evaluateRaw(gameState);
-                double tickDelta = nextScore - currentScore;
-                currentScore = nextScore;
-                delta += tickDelta * discount;
-                discount *= discountFactor;
-            }
+            Types.ACTIONS[] allActions = actAllPlayers(gameState, action, playerId);
+            gameState.next(allActions);
+            double nextScore = rootStateHeuristic.evaluateState(gameState);
+            double tickDelta = nextScore - currentScore;
+            currentScore = nextScore;
+            delta += tickDelta * discount;
+            discount *= discountFactor;
         }
-
         return delta;
 
     }
 
     public String toString() {
-        return "SEA: " + nEvals + " : " + sequenceLength ;
+        return "SEA: " + nEvals + " : " + sequenceLength + " : " + opponent;
     }
 
     public int getAction(GameState gameState, int playerId) {
         return getActions(gameState, playerId)[0];
     }
 
-    public SimpleEvoAgent setIsolating(boolean isolating) {
-        this.isolating = isolating;
-        return this;
-    }
 }

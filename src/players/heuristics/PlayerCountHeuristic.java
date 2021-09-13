@@ -27,9 +27,4 @@ public class PlayerCountHeuristic extends StateHeuristic {
 
         return value;
     }
-
-    @Override
-    public double evaluateRaw(GameState gs) {
-        return 0;
-    }
 }

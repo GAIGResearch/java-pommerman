@@ -414,7 +414,7 @@ public class GameInterface {
      * @param action - action for this player
      */
     public void advanceState(GameState gs, Types.ACTIONS action) {
-        int nPlayers = Types.NUM_PLAYERS;
+        int nPlayers = 4;
         Types.ACTIONS[] actionsAll = new Types.ACTIONS[nPlayers];
 
         for (int i = 0; i < nPlayers; ++i) {

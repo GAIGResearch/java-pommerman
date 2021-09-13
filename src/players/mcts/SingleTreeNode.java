@@ -145,8 +145,8 @@ public class SingleTreeNode
     private void roll(GameState gs, Types.ACTIONS act)
     {
         //Simple, all random first, then my position.
-        int nPlayers = Types.NUM_PLAYERS;
-        Types.ACTIONS[] actionsAll = new Types.ACTIONS[nPlayers];
+        int nPlayers = 4;
+        Types.ACTIONS[] actionsAll = new Types.ACTIONS[4];
         int playerId = gs.getPlayerId() - Types.TILETYPE.AGENT0.getKey();
 
         for(int i = 0; i < nPlayers; ++i)

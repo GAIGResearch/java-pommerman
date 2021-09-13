@@ -194,11 +194,9 @@ public class ForwardModel {
         bombLife = new int[size][size];
 
         HashSet<Types.TILETYPE> agentTypes = Types.TILETYPE.getAgentTypes();
-        agents = new GameObject[NUM_PLAYERS];
+        agents = new GameObject[agentTypes.size()];
         for (Types.TILETYPE type : agentTypes) {
-            if (type.getKey() - TILETYPE.AGENT0.getKey() < NUM_PLAYERS) {
-                agents[type.getKey() - Types.TILETYPE.AGENT0.getKey()] = new Avatar(type.getKey(), gameMode);
-            }
+            agents[type.getKey() - Types.TILETYPE.AGENT0.getKey()] = new Avatar(type.getKey(), gameMode);
         }
 
         for (GameObject agent : agents){
