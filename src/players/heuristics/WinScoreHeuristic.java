@@ -14,4 +14,9 @@ public class WinScoreHeuristic extends StateHeuristic {
             return 0.5;
         return 0;
     }
+
+    @Override
+    public double evaluateRaw(GameState gs) {
+        return 0;
+    }
 }

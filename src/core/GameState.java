@@ -144,7 +144,7 @@ public class GameState {
      * player Idx is retained, while the model is not further reduced.
      * @return a copy of this state
      */
-    GameState copy(int playerIdx) {
+    public GameState copy(int playerIdx) {
         // Determine this copy's player idx. If either received playerIdx or this.playerIdx is >= 0, keep that one.
         // Otherwise, keep original playerIdx
         int copyIdx = this.playerIdx;

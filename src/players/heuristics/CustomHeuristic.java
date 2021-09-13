@@ -28,6 +28,24 @@ public class CustomHeuristic extends StateHeuristic {
         return rawScore;
     }
 
+    @Override
+    public double evaluateRaw(GameState gs) {
+        boolean gameOver = gs.isTerminal();
+        Types.RESULT win = gs.winner();
+
+        // Compute a score relative to the root's state.
+        BoardStats lastBoardState = new BoardStats(gs);
+        double rawScore = BoardStats.rawScore(lastBoardState);
+
+        if(gameOver && win == Types.RESULT.LOSS)
+            rawScore = -1;
+
+        if(gameOver && win == Types.RESULT.WIN)
+            rawScore = 1;
+
+        return rawScore;
+    }
+
     public static class BoardStats
     {
         int tick, nTeammates, nEnemies, blastStrength;
@@ -36,11 +54,11 @@ public class CustomHeuristic extends StateHeuristic {
         static double maxWoods = -1;
         static double maxBlastStrength = 10;
 
-        double FACTOR_ENEMY;
-        double FACTOR_TEAM;
-        double FACTOR_WOODS = 0.1;
-        double FACTOR_CANKCIK = 0.15;
-        double FACTOR_BLAST = 0.15;
+        static double FACTOR_ENEMY;
+        static double FACTOR_TEAM;
+        static double FACTOR_WOODS = 0.1;
+        static double FACTOR_CANKCIK = 0.15;
+        static double FACTOR_BLAST = 0.15;
 
         BoardStats(GameState gs) {
             nEnemies = gs.getAliveEnemyIDs().size();
@@ -88,6 +106,17 @@ public class CustomHeuristic extends StateHeuristic {
             int diffWoods = - (futureState.nWoods - this.nWoods);
             int diffCanKick = futureState.canKick ? 1 : 0;
             int diffBlastStrength = futureState.blastStrength - this.blastStrength;
+
+            return (diffEnemies / 3.0) * FACTOR_ENEMY + diffTeammates * FACTOR_TEAM + (diffWoods / maxWoods) * FACTOR_WOODS
+                    + diffCanKick * FACTOR_CANKCIK + (diffBlastStrength / maxBlastStrength) * FACTOR_BLAST;
+        }
+
+        static double rawScore(BoardStats futureState) {
+            int diffTeammates = futureState.nTeammates;
+            int diffEnemies = - futureState.nEnemies;
+            int diffWoods = - futureState.nWoods;
+            int diffCanKick = futureState.canKick ? 1 : 0;
+            int diffBlastStrength = futureState.blastStrength;
 
             return (diffEnemies / 3.0) * FACTOR_ENEMY + diffTeammates * FACTOR_TEAM + (diffWoods / maxWoods) * FACTOR_WOODS
                     + diffCanKick * FACTOR_CANKCIK + (diffBlastStrength / maxBlastStrength) * FACTOR_BLAST;
