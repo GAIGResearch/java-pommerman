@@ -46,6 +46,11 @@ public class AdvancedHeuristic extends StateHeuristic {
         return rawScore;
     }
 
+    @Override
+    public double evaluateRaw(GameState gs) {
+        return 0;
+    }
+
     public static class BoardStats
     {
         int tick, nTeammates, nEnemies, blastStrength;
