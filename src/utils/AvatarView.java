@@ -52,45 +52,48 @@ public class AvatarView extends JComponent {
         // Paint avatars in a row
         if (avatars != null) {
             for (int i = 0; i < avatars.length; i++) {
-                GameObject o = avatars[i];
-                if (o != null) {
-                    int x = i * (cellSize + offsetX);
-                    int y = 0;
+                if (game.getPlayers().size() > i){
+                    GameObject o = avatars[i];
+                    if (o != null) {
+                        int x = i * (cellSize + offsetX);
+                        int y = 0;
 
-                    if (!alive[i]) {
-                        // If this avatar died, paint it with reduced opacity
-                        Composite comp = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f);
-                        g.setComposite(comp);
-                    } else {
-                        // Full opacity otherwise
+                        if (!alive[i]) {
+                            // If this avatar died, paint it with reduced opacity
+                            Composite comp = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f);
+                            g.setComposite(comp);
+                        } else {
+                            // Full opacity otherwise
+                            Composite comp = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f);
+                            g.setComposite(comp);
+                        }
+
+                        // Draw this avatar image
+                        Rectangle rect = new Rectangle(x + cellSize/4, y + offsetY, cellSize, cellSize);
+                        Image objImage = o.getImage();
+                        drawImage(g, objImage, rect);
+
+                        // Return to full opacity
                         Composite comp = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f);
                         g.setComposite(comp);
+
+                        // Draw win state
+                        if (((Avatar)o).getWinner() != Types.RESULT.INCOMPLETE) {
+                            g.setStroke(new BasicStroke(3));
+                            g.setColor(((Avatar) o).getWinner().getColor());
+                            g.drawRect(rect.x, rect.y + offsetY, rect.width, rect.height);
+                        }
+
+                        if (!alive[i]) {
+                            // Draw a skull on top of dead avatars.
+                            int wh = cellSize / 2;
+                            rect = new Rectangle(x + wh, y + offsetY, wh, wh);
+                            drawImage(g, Objects.requireNonNull(AGENTDUMMY.getImage()), rect);
+                        }
+
+                        _drawExtras(g, (Avatar)o, x, y + cellSize);
                     }
 
-                    // Draw this avatar image
-                    Rectangle rect = new Rectangle(x + cellSize/4, y + offsetY, cellSize, cellSize);
-                    Image objImage = o.getImage();
-                    drawImage(g, objImage, rect);
-
-                    // Return to full opacity
-                    Composite comp = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f);
-                    g.setComposite(comp);
-
-                    // Draw win state
-                    if (((Avatar)o).getWinner() != Types.RESULT.INCOMPLETE) {
-                        g.setStroke(new BasicStroke(3));
-                        g.setColor(((Avatar) o).getWinner().getColor());
-                        g.drawRect(rect.x, rect.y + offsetY, rect.width, rect.height);
-                    }
-
-                    if (!alive[i]) {
-                        // Draw a skull on top of dead avatars.
-                        int wh = cellSize / 2;
-                        rect = new Rectangle(x + wh, y + offsetY, wh, wh);
-                        drawImage(g, Objects.requireNonNull(AGENTDUMMY.getImage()), rect);
-                    }
-
-                    _drawExtras(g, (Avatar)o, x, y + cellSize);
                 } else {
                     if (VERBOSE) {
                         System.out.println("Avatar is null");
