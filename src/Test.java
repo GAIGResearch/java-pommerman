@@ -39,8 +39,8 @@ public class Test {
 
         players.add(new SimpleEvoAgent(seed, playerID++).setIsolating(true));
         players.add(new SimpleEvoAgent(seed, playerID++));
-        players.add(new SimpleEvoAgent(seed, playerID++));
-        players.add(new SimpleEvoAgent(seed, playerID++));
+//        players.add(new SimpleEvoAgent(seed, playerID++));
+//        players.add(new SimpleEvoAgent(seed, playerID++));
         //players.add(new MCTSPlayer(seed, playerID++, mctsParams));
 
 //        players.add(new SimplePlayer(seed, playerID++));
