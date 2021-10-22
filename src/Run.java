@@ -2,6 +2,8 @@ import core.Game;
 import players.*;
 import players.mcts.MCTSParams;
 import players.mcts.MCTSPlayer;
+import players.mcts_group_1b.MCTSOpponentModelPlayer;
+import players.mcts_group_1b.MCTSOpponentModelParams;
 import players.rhea.RHEAPlayer;
 import players.rhea.utils.Constants;
 import players.rhea.utils.RHEAParams;
@@ -27,6 +29,7 @@ public class Run {
         System.out.println("\t\t 3 SimplePlayer");
         System.out.println("\t\t 4 RHEA 200 itereations, shift buffer, pop size 1, random init, length: 12");
         System.out.println("\t\t 5 MCTS 200 iterations, length: 12");
+        System.out.println("\t\t 6 Group 1B - MCTSOpponentModelPlayer");
     }
 
     public static void main(String[] args) {
@@ -121,6 +124,16 @@ public class Run {
                         mctsParams.heuristic_method = mctsParams.CUSTOM_HEURISTIC;
                         p = new MCTSPlayer(seed, playerID++, mctsParams);
                         playerStr[i-4] = "MCTS";
+                        break;
+                    case 6:
+                        MCTSOpponentModelParams mctsOpponentModelParams = new MCTSOpponentModelParams();
+                        mctsOpponentModelParams.stop_type = mctsOpponentModelParams.STOP_ITERATIONS;
+                        mctsOpponentModelParams.num_iterations = 200;
+                        mctsOpponentModelParams.rollout_depth = 12;
+
+                        mctsOpponentModelParams.heuristic_method = mctsOpponentModelParams.CUSTOM_HEURISTIC;
+                        p = new MCTSOpponentModelPlayer(seed, playerID++, mctsOpponentModelParams);
+                        playerStr[i-4] = "MCTSOpponentModel";
                         break;
                     default:
                         System.out.println("WARNING: Invalid agent ID: " + agentType );
