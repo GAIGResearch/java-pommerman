@@ -1,4 +1,4 @@
-package players.mcts_group_1b;
+package players.group1b;
 
 import core.GameState;
 import players.optimisers.ParameterizedPlayer;
